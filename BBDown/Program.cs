@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.CommandLine;
-using System.CommandLine.Parsing;
 using System.IO;
 using System.Net;
 using System.Threading;
@@ -17,10 +15,11 @@ using System.Text.RegularExpressions;
 using BBDown.Core;
 using BBDown.Core.Util;
 using System.Text.Json.Serialization;
-using System.CommandLine.Builder;
 using BBDown.Core.Entity;
 using BBDown.Core.DRM;
 using System.Diagnostics;
+using Spectre.Console.Cli;
+using BBDown.Commands;
 
 namespace BBDown;
 
@@ -66,86 +65,6 @@ partial class Program
     public static async Task<int> Main(params string[] args)
     {
         Console.CancelKeyPress += Console_CancelKeyPress;
-        var rootCommand = CommandLineInvoker.GetRootCommand(RunApp);
-        Command loginCommand = new(
-            "login",
-            "通过APP扫描二维码以登录您的WEB账号");
-        rootCommand.AddCommand(loginCommand);
-        Command loginTVCommand = new(
-            "logintv",
-            "通过APP扫描二维码以登录您的TV账号");
-        rootCommand.AddCommand(loginTVCommand);
-        var serverUrlOpt = new Option<string>(
-            ["--listen", "-l"],
-            description: "服务器监听url");
-        Command runAsServerCommand = new(
-                "serve",
-                "以服务器模式运行")
-            { serverUrlOpt };
-        runAsServerCommand.SetHandler(StartServer, serverUrlOpt);
-        rootCommand.AddCommand(runAsServerCommand);
-        rootCommand.Description = "BBDown是一个免费且便捷高效的哔哩哔哩下载/解析软件.";
-        rootCommand.TreatUnmatchedTokensAsErrors = true;
-
-        //WEB登录
-        loginCommand.SetHandler(BBDownLoginUtil.LoginWEB);
-
-        //TV登录
-        loginTVCommand.SetHandler(BBDownLoginUtil.LoginTV);
-
-        var parser = new CommandLineBuilder(rootCommand)
-            .UseDefaults()
-            .EnablePosixBundling(false)
-            .UseExceptionHandler((ex, context) =>
-            {
-                LogError(ex.Message);
-                try { Console.CursorVisible = true; } catch { }
-                Thread.Sleep(3000);
-                Environment.Exit(1);
-            }, 1)
-            .Build();
-
-        var newArgsList = new List<string>();
-        var commandLineResult = rootCommand.Parse(args);
-
-        //显式抛出异常
-        if (commandLineResult.Errors.Any())
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Error.WriteLine(commandLineResult.Errors.First().Message);
-            Console.ResetColor();
-            Console.Error.WriteLine($"请使用 BBDown --help 查看帮助");
-            return 1;
-        }
-
-        if (commandLineResult.CommandResult.Command.Name.ToLower() != Path.GetFileNameWithoutExtension(Environment.ProcessPath)!.ToLower() && Path.GetFileNameWithoutExtension(Environment.ProcessPath)!.ToLower() != "dotnet")
-        {
-            // 服务器模式需要完整的arg列表
-            if (commandLineResult.CommandResult.Command.Name.ToLower() == "serve")
-            {
-                return await parser.InvokeAsync(args.ToArray());
-            }
-            newArgsList.Add(commandLineResult.CommandResult.Command.Name);
-            return await parser.InvokeAsync(newArgsList.ToArray());
-        }
-
-        foreach (var item in commandLineResult.CommandResult.Children)
-        {
-            if (item is ArgumentResult a)
-            {
-                newArgsList.Add(a.Tokens[0].Value);
-            }
-            else if (item is OptionResult o)
-            {
-                newArgsList.Add("--" + o.Option.Name);
-                newArgsList.AddRange(o.Tokens.Select(t => t.Value));
-            }
-        }
-
-        if (newArgsList.Contains("--debug"))
-        {
-            Config.DEBUG_LOG = true;
-        }
 
         Console.BackgroundColor = ConsoleColor.DarkBlue;
         Console.ForegroundColor = ConsoleColor.White;
@@ -155,20 +74,42 @@ partial class Program
         Console.Write("遇到问题请首先到以下地址查阅有无相关信息：\r\nhttps://github.com/nilaoda/BBDown/issues\r\n");
         Console.WriteLine();
 
-        //处理配置文件
-        BBDownConfigParser.HandleConfig(newArgsList, rootCommand);
+        var mergedArgs = BBDownConfigParser.MergeWithConfig(args).ToArray();
 
-        return await parser.InvokeAsync(newArgsList.ToArray());
+        if (mergedArgs.Contains("--debug"))
+        {
+            Config.DEBUG_LOG = true;
+        }
+
+        var app = new CommandApp<DefaultCommand>();
+        app.Configure(config =>
+        {
+            config.SetApplicationName("BBDown");
+            config.SetApplicationVersion($"{ver.Major}.{ver.Minor}.{ver.Build}");
+            config.SetExceptionHandler((ex, resolver) =>
+            {
+                Console.BackgroundColor = ConsoleColor.Red;
+                Console.ForegroundColor = ConsoleColor.White;
+                var msg = Config.DEBUG_LOG ? ex.ToString() : ex.Message;
+                Console.Error.WriteLine(msg);
+                Console.Error.WriteLine("请尝试升级到最新版本后重试!");
+                Console.ResetColor();
+                try { Console.CursorVisible = true; } catch { }
+                return 1;
+            });
+
+            config.AddCommand<LoginCommand>("login")
+                  .WithDescription("通过APP扫描二维码以登录您的WEB账号");
+            config.AddCommand<LoginTVCommand>("logintv")
+                  .WithDescription("通过APP扫描二维码以登录您的TV账号");
+            config.AddCommand<ServeCommand>("serve")
+                  .WithDescription("以服务器模式运行");
+        });
+
+        return await app.RunAsync(mergedArgs);
     }
 
-    private static Task RunApp(MyOption myOption)
-    {
-        //检测更新
-        _ = CheckUpdateAsync();
-        return DoWorkAsync(myOption);
-    }
-
-    private static void StartServer(string? listenUrl)
+    internal static void StartServer(string? listenUrl)
     {
         var defaultListenUrl = "http://0.0.0.0:23333";
         //检测更新
@@ -832,7 +773,7 @@ partial class Program
         }
     }
 
-    private static async Task DoWorkAsync(MyOption myOption)
+    internal static async Task DoWorkAsync(MyOption myOption)
     {
         try
         {
