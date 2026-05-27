@@ -23,6 +23,7 @@ public class BBDownApiServer
     private readonly object _taskLock = new();
     private readonly List<DownloadTask> runningTasks = [];
     private readonly List<DownloadTask> finishedTasks = [];
+    private readonly SemaphoreSlim _concurrencyLimiter = new(3, 3); // max 3 concurrent downloads
 
     public void SetUpServer()
     {
@@ -135,6 +136,7 @@ public class BBDownApiServer
         };
         var task = new DownloadTask(aid, option.Url, DateTimeOffset.Now.ToUnixTimeSeconds());
         lock (_taskLock) { runningTasks.Add(task); }
+        await _concurrencyLimiter.WaitAsync();
         try
         {
             var (encodingPriority, dfnPriority, firstEncoding, downloadDanmaku, downloadDanmakuFormats, input, savePathFormat, lang, aidOri, delay) = Program.SetUpWork(option);
@@ -156,6 +158,10 @@ public class BBDownApiServer
             }
             Logger.LogError($"{aid} 下载失败");
             Logger.LogDebug("异常详情: {0}", displayMsg);
+        }
+        finally
+        {
+            _concurrencyLimiter.Release();
         }
         task.TaskFinishTime = DateTimeOffset.Now.ToUnixTimeSeconds();
         if (task.IsSuccessful)
