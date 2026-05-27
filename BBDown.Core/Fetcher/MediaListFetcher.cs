@@ -38,7 +38,7 @@ public class MediaListFetcher : IFetcher
                 var message = root.TryGetProperty("message", out var msgElem) && msgElem.ValueKind == JsonValueKind.String
                     ? msgElem.GetString()
                     : "未知错误";
-                throw new Exception($"获取合集信息失败(code={code}): {message}");
+                throw new InvalidOperationException($"获取合集信息失败(code={code}): {message}");
             }
         }
         var listTitle = data.GetProperty("title").GetString()!;
@@ -64,7 +64,7 @@ public class MediaListFetcher : IFetcher
                 var message = listRoot.TryGetProperty("message", out var msgElem) && msgElem.ValueKind == JsonValueKind.String
                     ? msgElem.GetString()
                     : "未知错误";
-                throw new Exception($"获取合集视频列表失败(code={code}): {message}");
+                throw new InvalidOperationException($"获取合集视频列表失败(code={code}): {message}");
             }
             hasMore = data.GetProperty("has_more").GetBoolean();
             foreach (var m in data.GetProperty("media_list").EnumerateArray())

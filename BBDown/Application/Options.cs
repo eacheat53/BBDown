@@ -162,7 +162,7 @@ internal partial class Program
                 {
                     var binPath = FindExecutable("mp4box") ?? FindExecutable("MP4box");
                     if (string.IsNullOrEmpty(binPath))
-                        throw new Exception("找不到可执行的mp4box文件");
+                        throw new FileNotFoundException("找不到可执行的mp4box文件");
                     BBDownMuxer.MP4BOX = binPath;
                 }
             }
@@ -170,7 +170,7 @@ internal partial class Program
             {
                 var binPath = FindExecutable("ffmpeg");
                 if (string.IsNullOrEmpty(binPath))
-                    throw new Exception("找不到可执行的ffmpeg文件");
+                    throw new FileNotFoundException("找不到可执行的ffmpeg文件");
                 BBDownMuxer.FFMPEG = binPath;
             }
         }
@@ -182,7 +182,7 @@ internal partial class Program
             {
                 var binPath = FindExecutable("aria2c");
                 if (string.IsNullOrEmpty(binPath))
-                    throw new Exception("找不到可执行的aria2c文件");
+                    throw new FileNotFoundException("找不到可执行的aria2c文件");
                 BBDownAria2c.ARIA2C = binPath;
             }
 

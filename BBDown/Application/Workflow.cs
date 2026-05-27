@@ -93,7 +93,7 @@ internal partial class Program
 
         if (string.IsNullOrEmpty(aidOri))
         {
-            throw new Exception("输入有误");
+            throw new ArgumentException("输入有误：无法识别的视频 URL 或 ID");
         }
 
         Log("获取视频信息...");
@@ -117,7 +117,7 @@ internal partial class Program
 
             if (string.IsNullOrEmpty(aidOri))
             {
-                throw new Exception("输入有误");
+                throw new ArgumentException("输入有误：无法获取视频信息");
             }
 
             Log("获取视频信息...");

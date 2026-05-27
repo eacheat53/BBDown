@@ -30,11 +30,11 @@ public static class BilibiliBvConverter
     {
         if (avid < MIN_AID)
         {
-            throw new Exception($"Av {avid} is smaller than {MIN_AID}");
+            throw new ArgumentOutOfRangeException(nameof(avid), $"Av {avid} is smaller than {MIN_AID}");
         }
         if (avid >= MAX_AID)
         {
-            throw new Exception($"Av {avid} is bigger than {MAX_AID}");
+            throw new ArgumentOutOfRangeException(nameof(avid), $"Av {avid} is bigger than {MAX_AID}");
         }
 
         var bvid = new byte[BV_LEN];
@@ -56,7 +56,7 @@ public static class BilibiliBvConverter
     {
         if (bvid_str.Length != BV_LEN)
         {
-            throw new Exception($"Bv BV1{bvid_str} must to be 12 char");
+            throw new ArgumentException($"Bv BV1{bvid_str} must to be 12 char", nameof(bvid_str));
         }
 
         byte[] bvid = Encoding.ASCII.GetBytes(bvid_str);

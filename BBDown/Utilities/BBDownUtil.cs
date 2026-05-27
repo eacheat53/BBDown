@@ -46,7 +46,7 @@ static partial class BBDownUtil
             if (input.Contains("b23.tv"))
             {
                 string tmp = await GetWebLocationAsync(input);
-                if (tmp == input) throw new Exception("无限重定向");
+                if (tmp == input) throw new InvalidOperationException("无限重定向");
                 input = tmp;
             }
             if (input.Contains("video/av"))
@@ -161,7 +161,7 @@ static partial class BBDownUtil
                 var epList = jDoc.RootElement.GetProperty("epList").EnumerateArray();
                 var firstEp = epList.FirstOrDefault();
                 if (firstEp.ValueKind == System.Text.Json.JsonValueKind.Undefined)
-                    throw new Exception("未找到任何分P信息");
+                    throw new InvalidOperationException("未找到任何分P信息");
                 string epId = firstEp.GetProperty("id").ToString();
                 avid = $"ep:{epId}";
             }
@@ -213,7 +213,7 @@ static partial class BBDownUtil
         }
         else
         {
-            throw new Exception("输入有误");
+            throw new ArgumentException("输入有误：无法识别的视频 URL 或 ID");
         }
         return await FixAvidAsync(avid);
     }
@@ -281,7 +281,7 @@ static partial class BBDownUtil
         var episodes = jDoc.RootElement.GetProperty("data").GetProperty("episodes").EnumerateArray();
         var firstEp = episodes.FirstOrDefault();
         if (firstEp.ValueKind == System.Text.Json.JsonValueKind.Undefined)
-            throw new Exception("未找到课程分P信息");
+            throw new InvalidOperationException("未找到课程分P信息");
         string epId = firstEp.GetProperty("id").ToString();
         return epId;
     }
@@ -294,7 +294,7 @@ static partial class BBDownUtil
         var episodes = jDoc.RootElement.GetProperty("result").GetProperty("episodes").EnumerateArray();
         var firstEp = episodes.FirstOrDefault();
         if (firstEp.ValueKind == System.Text.Json.JsonValueKind.Undefined)
-            throw new Exception("未找到番剧分P信息");
+            throw new InvalidOperationException("未找到番剧分P信息");
         string epId = firstEp.GetProperty("id").ToString();
         return epId;
     }

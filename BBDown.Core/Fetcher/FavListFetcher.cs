@@ -27,7 +27,7 @@ public class FavListFetcher : IFetcher
             var list = favDoc.RootElement.GetProperty("data").GetProperty("list").EnumerateArray();
             var firstFav = list.FirstOrDefault();
             if (firstFav.ValueKind == System.Text.Json.JsonValueKind.Undefined)
-                throw new Exception("该用户没有创建收藏夹");
+                throw new InvalidOperationException("该用户没有创建收藏夹");
             favId = firstFav.GetProperty("id").ToString();
         }
 
