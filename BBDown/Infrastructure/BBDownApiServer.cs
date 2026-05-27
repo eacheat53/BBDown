@@ -161,7 +161,10 @@ public class BBDownApiServer
         if (task.IsSuccessful)
         {
             task.Progress = 1f;
-            task.DownloadSpeed = (double)(task.TotalDownloadedBytes / (task.TaskFinishTime - task.TaskCreateTime));
+            var elapsed = task.TaskFinishTime - task.TaskCreateTime;
+            task.DownloadSpeed = elapsed > 0
+                ? (double)(task.TotalDownloadedBytes / elapsed)
+                : 0;
         }
         lock (_taskLock)
         {
