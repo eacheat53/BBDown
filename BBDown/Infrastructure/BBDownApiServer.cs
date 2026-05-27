@@ -116,12 +116,8 @@ public class BBDownApiServer
             && uriResult.Scheme == Uri.UriSchemeHttp;
         if (!result)
         {
-            Console.BackgroundColor = ConsoleColor.Red;
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine($"{url}不是合法的http URL，url示例：http://0.0.0.0:5000");
-            Console.WriteLine("如果您需要https，请额外配置反向代理");
-            Console.ResetColor();
-            Console.WriteLine();
+            Logger.LogError($"{url} 不是合法的 http URL，url 示例：http://0.0.0.0:5000");
+            Logger.LogWarn("如果您需要 https，请额外配置反向代理");
             Environment.ExitCode = 1;
             return;
         }
@@ -152,13 +148,14 @@ public class BBDownApiServer
         }
         catch (Exception e)
         {
-            Console.BackgroundColor = ConsoleColor.Red;
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine($"{aid}下载失败");
-            var msg = Config.DEBUG_LOG ? e.ToString() : e.Message;
-            Console.Write($"{msg}{Environment.NewLine}请尝试升级到最新版本后重试!");
-            Console.ResetColor();
-            Console.WriteLine();
+            bool debugMode = option.Debug || Config.DEBUG_LOG;
+            var displayMsg = debugMode ? e.ToString() : e.Message;
+            if (debugMode)
+            {
+                task.ErrorMessage = displayMsg;
+            }
+            Logger.LogError($"{aid} 下载失败");
+            Logger.LogDebug("异常详情: {0}", displayMsg);
         }
         task.TaskFinishTime = DateTimeOffset.Now.ToUnixTimeSeconds();
         if (task.IsSuccessful)
@@ -208,6 +205,8 @@ public record DownloadTask(string Aid, string Url, long TaskCreateTime)
     public double TotalDownloadedBytes = 0f;
     [JsonInclude]
     public bool IsSuccessful = false;
+    [JsonInclude]
+    public string? ErrorMessage = null;
 
     [JsonInclude]
     public List<string> SavePaths = new();
