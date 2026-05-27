@@ -24,8 +24,8 @@ static partial class BBDownUtil
         {
             var ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!;
             string nowVer = $"{ver.Major}.{ver.Minor}.{ver.Build}";
-            string redirectUrl = await GetWebLocationAsync("https://github.com/nilaoda/BBDown/releases/latest");
-            string latestVer = redirectUrl.Replace("https://github.com/nilaoda/BBDown/releases/tag/", "");
+            string redirectUrl = await GetWebLocationAsync("https://github.com/AliverAnme/BBDown/releases/latest");
+            string latestVer = redirectUrl.Replace("https://github.com/AliverAnme/BBDown/releases/tag/", "");
             if (nowVer != latestVer && !latestVer.StartsWith("https"))
             {
                 Console.Title = $"发现新版本：{latestVer}";

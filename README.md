@@ -1,4 +1,4 @@
-[![img](https://img.shields.io/github/stars/nilaoda/BBDown?label=%E7%82%B9%E8%B5%9E)](https://github.com/nilaoda/BBDown)  [![img](https://img.shields.io/github/last-commit/nilaoda/BBDown?label=%E6%9C%80%E8%BF%91%E6%8F%90%E4%BA%A4)](https://github.com/nilaoda/BBDown)  [![img](https://img.shields.io/github/release/nilaoda/BBDown?label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC)](https://github.com/nilaoda/BBDown/releases)  [![img](https://img.shields.io/github/license/nilaoda/BBDown?label=%E8%AE%B8%E5%8F%AF%E8%AF%81)](https://github.com/nilaoda/BBDown)  [![Build Latest](https://github.com/nilaoda/BBDown/actions/workflows/build_latest.yml/badge.svg)](https://github.com/nilaoda/BBDown/actions/workflows/build_latest.yml)
+[![img](https://img.shields.io/github/stars/AliverAnme/BBDown?label=%E7%82%B9%E8%B5%9E)](https://github.com/AliverAnme/BBDown)  [![img](https://img.shields.io/github/last-commit/AliverAnme/BBDown?label=%E6%9C%80%E8%BF%91%E6%8F%90%E4%BA%A4)](https://github.com/AliverAnme/BBDown)  [![img](https://img.shields.io/github/release/AliverAnme/BBDown?label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC)](https://github.com/AliverAnme/BBDown/releases)  [![img](https://img.shields.io/github/license/AliverAnme/BBDown?label=%E8%AE%B8%E5%8F%AF%E8%AF%81)](https://github.com/AliverAnme/BBDown)  [![Build Latest](https://github.com/AliverAnme/BBDown/actions/workflows/build_latest.yml/badge.svg)](https://github.com/AliverAnme/BBDown/actions/workflows/build_latest.yml)
 
 > 本项目仅供个人学习、研究和非商业性用途。用户在使用本工具时，需自行确保遵守相关法律法规，特别是与版权相关的法律条款。开发者不对因使用本工具而产生的任何版权纠纷或法律责任承担责任。请用户在使用时谨慎，确保其行为合法合规，并仅在有合法授权的情况下使用相关内容。
 
@@ -25,9 +25,9 @@ dotnet tool update --global BBDown
 ```
 
 # 下载
-Release版本：https://github.com/nilaoda/BBDown/releases
+Release版本：https://github.com/AliverAnme/BBDown/releases
 
-自动构建的测试版本：https://github.com/nilaoda/BBDown/actions
+自动构建的测试版本：https://github.com/AliverAnme/BBDown/actions
 
 # 开始使用
 目前命令行参数支持情况
@@ -235,7 +235,7 @@ BBDown logintv
 ```
 然后按照提示操作
  
-*PS: 如果登录报错`The type initializer for 'Gdip' threw an exception`，请参考 [#37](https://github.com/nilaoda/BBDown/issues/37) 解决*
+*PS: 如果登录报错`The type initializer for 'Gdip' threw an exception`，请参考 [#37](https://github.com/AliverAnme/BBDown/issues/37) 解决*
 
 手动加载网页cookie：
 ```
@@ -253,7 +253,7 @@ BBDown -tv -token "******" "https://www.bilibili.com/video/BV1qt4y1X7TW"
 
 ---
 
-> 根据 [#123](https://github.com/nilaoda/BBDown/issues/123#issuecomment-877583825) ，可以填写TV登录产生的`access_token`来给APP接口使用。可复制`BBDownTV.data`到`BBDownApp.data`使程序自动读取.
+> 根据 [#123](https://github.com/AliverAnme/BBDown/issues/123#issuecomment-877583825) ，可以填写TV登录产生的`access_token`来给APP接口使用。可复制`BBDownTV.data`到`BBDownApp.data`使程序自动读取.
 
 目前程序无法自动获取鉴权信息，推荐通过**抓包**来获取.
 
