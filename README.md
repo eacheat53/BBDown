@@ -326,13 +326,48 @@ API详细请参考[json-api-doc.md](./json-api-doc.md)
 
 ![2](https://user-images.githubusercontent.com/20772925/88478901-5e1cdc00-cf7e-11ea-97c1-154b9226564e.png)
 
+## 开发构建
+
+```bash
+# 克隆仓库
+git clone https://github.com/AliverAnme/BBDown.git
+cd BBDown
+
+# 还原依赖并编译
+dotnet restore
+dotnet build
+
+# 运行
+BBDown/bin/Debug/net9.0/BBDown --help
+```
+
+详细贡献指南请参考 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+
+## 更新日志
+
+查看 [CHANGELOG.md](./CHANGELOG.md) 了解版本历史。
+
+## 许可证
+
+本项目基于 [MIT 许可证](./LICENSE) 开源。
+
+## 安全
+
+安全漏洞报告请参考 [SECURITY.md](./SECURITY.md)。请勿通过公开 Issue 报告安全问题。
+
+## 社区
+
+- [贡献指南](./CONTRIBUTING.md)
+- [行为准则](./CODE_OF_CONDUCT.md)
+- [Discussions](https://github.com/AliverAnme/BBDown/discussions)
+
 # 致谢
 
 * https://github.com/codebude/QRCoder
 * https://github.com/icsharpcode/SharpZipLib
 * https://github.com/protocolbuffers/protobuf
 * https://github.com/grpc/grpc
-* https://github.com/dotnet/command-line-api
+* https://github.com/spectreconsole/spectre.console
 * https://github.com/SocialSisterYi/bilibili-API-collect
 * https://github.com/SeeFlowerX/bilibili-grpc-api
 * https://github.com/FFmpeg/FFmpeg
