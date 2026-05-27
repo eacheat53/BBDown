@@ -158,7 +158,11 @@ static partial class BBDownUtil
                 Regex regex = StateRegex();
                 string json = regex.Match(web).Groups[1].Value;
                 using var jDoc = JsonDocument.Parse(json);
-                string epId = jDoc.RootElement.GetProperty("epList").EnumerateArray().First().GetProperty("id").ToString();
+                var epList = jDoc.RootElement.GetProperty("epList").EnumerateArray();
+                var firstEp = epList.FirstOrDefault();
+                if (firstEp.ValueKind == System.Text.Json.JsonValueKind.Undefined)
+                    throw new Exception("未找到任何分P信息");
+                string epId = firstEp.GetProperty("id").ToString();
                 avid = $"ep:{epId}";
             }
         }
@@ -274,7 +278,11 @@ static partial class BBDownUtil
         string api = $"https://api.bilibili.com/pugv/view/web/season?season_id={ssid}";
         string json = await GetWebSourceAsync(api);
         using var jDoc = JsonDocument.Parse(json);
-        string epId = jDoc.RootElement.GetProperty("data").GetProperty("episodes").EnumerateArray().First().GetProperty("id").ToString();
+        var episodes = jDoc.RootElement.GetProperty("data").GetProperty("episodes").EnumerateArray();
+        var firstEp = episodes.FirstOrDefault();
+        if (firstEp.ValueKind == System.Text.Json.JsonValueKind.Undefined)
+            throw new Exception("未找到课程分P信息");
+        string epId = firstEp.GetProperty("id").ToString();
         return epId;
     }
 
@@ -283,7 +291,11 @@ static partial class BBDownUtil
         string api = $"https://{Core.Config.EPHOST}/pgc/view/web/season?season_id={ssId}";
         string json = await GetWebSourceAsync(api);
         using var jDoc = JsonDocument.Parse(json);
-        string epId = jDoc.RootElement.GetProperty("result").GetProperty("episodes").EnumerateArray().First().GetProperty("id").ToString();
+        var episodes = jDoc.RootElement.GetProperty("result").GetProperty("episodes").EnumerateArray();
+        var firstEp = episodes.FirstOrDefault();
+        if (firstEp.ValueKind == System.Text.Json.JsonValueKind.Undefined)
+            throw new Exception("未找到番剧分P信息");
+        string epId = firstEp.GetProperty("id").ToString();
         return epId;
     }
 
