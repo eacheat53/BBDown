@@ -25,15 +25,23 @@ static partial class BBDownMuxer
         p.StartInfo.Arguments = args;
         p.StartInfo.UseShellExecute = false;
         p.StartInfo.RedirectStandardError = true;
+        p.StartInfo.RedirectStandardOutput = true;
         p.StartInfo.CreateNoWindow = true;
         p.ErrorDataReceived += (_, output) =>
         {
             if (!string.IsNullOrWhiteSpace(output.Data))
                 Log(output.Data);
         };
+        p.OutputDataReceived += (_, output) =>
+        {
+            if (!string.IsNullOrWhiteSpace(output.Data))
+                LogDebug(output.Data);
+        };
         p.StartInfo.StandardErrorEncoding = Encoding.UTF8;
+        p.StartInfo.StandardOutputEncoding = Encoding.UTF8;
         p.Start();
         p.BeginErrorReadLine();
+        p.BeginOutputReadLine();
         p.WaitForExit();
         return p.ExitCode;
     }
