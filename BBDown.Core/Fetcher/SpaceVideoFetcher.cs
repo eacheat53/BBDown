@@ -2,6 +2,7 @@
 using System.Text.Json;
 using static BBDown.Core.Util.HTTPUtil;
 using static BBDown.Core.Logger;
+using static BBDown.Core.Util.PathUtil;
 
 namespace BBDown.Core.Fetcher;
 
@@ -56,20 +57,5 @@ pause");
             urls.Add($"https://www.bilibili.com/video/av{page.GetProperty("aid")}");
         }
         return urls;
-    }
-
-    private static string GetValidFileName(string input, string re = "_", bool filterSlash = false)
-    {
-        string title = input;
-        foreach (char invalidChar in Path.GetInvalidFileNameChars())
-        {
-            title = title.Replace(invalidChar.ToString(), re);
-        }
-        if (filterSlash)
-        {
-            title = title.Replace("/", re);
-            title = title.Replace("\\", re);
-        }
-        return title;
     }
 }
