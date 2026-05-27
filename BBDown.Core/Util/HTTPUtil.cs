@@ -62,7 +62,7 @@ public static class HTTPUtil
         webRequest.Headers.Connection.Clear();
 
         LogDebug("获取网页内容: Url: {0}, Headers: {1}", url, webRequest.Headers);
-        var webResponse = (await AppHttpClient.SendAsync(webRequest, HttpCompletionOption.ResponseHeadersRead)).EnsureSuccessStatusCode();
+        using var webResponse = (await AppHttpClient.SendAsync(webRequest, HttpCompletionOption.ResponseHeadersRead)).EnsureSuccessStatusCode();
 
         string htmlCode = await webResponse.Content.ReadAsStringAsync();
         LogDebug("Response: {0}", htmlCode);
@@ -84,7 +84,7 @@ public static class HTTPUtil
                 webRequest.Headers.Connection.Clear();
 
                 LogDebug("获取网页重定向地址(method={1}): Url: {0}", url, method);
-                var webResponse = (await AppHttpClient.SendAsync(webRequest, HttpCompletionOption.ResponseHeadersRead)).EnsureSuccessStatusCode();
+                using var webResponse = (await AppHttpClient.SendAsync(webRequest, HttpCompletionOption.ResponseHeadersRead)).EnsureSuccessStatusCode();
                 string location = webResponse.RequestMessage?.RequestUri?.AbsoluteUri ?? url;
                 LogDebug("Location: {0}", location);
                 return location;
@@ -124,7 +124,7 @@ public static class HTTPUtil
             request.Headers.TryAddWithoutValidation("grpc-encoding", "gzip");
         }
 
-        HttpResponseMessage response = await AppHttpClient.SendAsync(request);
+        using HttpResponseMessage response = await AppHttpClient.SendAsync(request);
         byte[] bytes = await response.Content.ReadAsByteArrayAsync();
 
         return bytes;
