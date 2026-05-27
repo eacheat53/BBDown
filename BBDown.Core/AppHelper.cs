@@ -103,7 +103,7 @@ static class AppHelper
                         item.StreamInfo.Quality,
                         item.DashVideo.BaseUrl,
                         item.DashVideo.BackupUrl.ToList(),
-                        (uint)(item.DashVideo.Size * 8 / (resp.VideoInfo.Timelength / 1000)),
+                        (uint)(item.DashVideo.Size * 8 / Math.Max(resp.VideoInfo.Timelength / 1000, 1)),
                         item.DashVideo.Codecid
                     ));
                 }

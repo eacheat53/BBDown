@@ -422,7 +422,8 @@ internal partial class Program
                 int index = 0;
                 foreach (var v in parsedResult.VideoTracks)
                 {
-                    LogColor($"{index++}. [{v.dfn}] [{v.res}] [{v.codecs}] [{v.fps}] [~{v.size / 1024 / v.dur * 8:00} kbps] [{FormatFileSize(v.size)}]".Replace("[] ", ""), false);
+                    var kbps = v.dur > 0 ? v.size / 1024 / v.dur * 8 : 0;
+                    LogColor($"{index++}. [{v.dfn}] [{v.res}] [{v.codecs}] [{v.fps}] [~{kbps:00} kbps] [{FormatFileSize(v.size)}]".Replace("[] ", ""), false);
                     if (myOption.OnlyShowInfo)
                     {
                         clips.ForEach(Console.WriteLine);

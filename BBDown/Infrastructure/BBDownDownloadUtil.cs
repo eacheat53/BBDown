@@ -147,7 +147,7 @@ internal static class BBDownDownloadUtil
                 await RangeDownloadToTmpAsync(clip.index, url, tmp, clip.from, clip.to == -1 ? null : clip.to, (index, downloaded, _) =>
                 {
                     clipProgress[index] = downloaded;
-                    progress.Report((double)clipProgress.Values.Sum() / fileSize, clipProgress.Values.Sum());
+                    progress.Report(fileSize > 0 ? (double)clipProgress.Values.Sum() / fileSize : 0, clipProgress.Values.Sum());
                 }, true);
                 break;
             }
