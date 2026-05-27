@@ -130,10 +130,10 @@ public static partial class Parser
                                 dur = pDur,
                                 id = videoId,
                                 dfn = Config.qualitys.GetValueOrDefault(videoId, $"未知({videoId})"),
-                                bandwidth = Convert.ToInt64(dashVideo.GetProperty("bandwidth").ToString()) / 1000,
+                                bandwidth = dashVideo.GetProperty("bandwidth").GetInt64() / 1000,
                                 baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
                                 codecs = GetVideoCodec(dashVideo.GetProperty("codecid").ToString()),
-                                size = dashVideo.TryGetProperty("size", out var sizeNode) ? Convert.ToDouble(sizeNode.ToString()) : 0
+                                size = dashVideo.TryGetProperty("size", out var sizeNode) ? sizeNode.GetDouble() : 0
                             };
                             if (!parsedResult.VideoTracks.Contains(v)) parsedResult.VideoTracks.Add(v);
                         }
@@ -149,7 +149,7 @@ public static partial class Parser
                         id = node.GetProperty("id").ToString(),
                         dfn = node.GetProperty("id").ToString(),
                         dur = pDur,
-                        bandwidth = Convert.ToInt64(node.GetProperty("bandwidth").ToString()) / 1000,
+                        bandwidth = node.GetProperty("bandwidth").GetInt64() / 1000,
                         baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
                         codecs = "M4A"
                     };
@@ -274,10 +274,10 @@ public static partial class Parser
                         dur = pDur,
                         id = videoId,
                         dfn = Config.qualitys.GetValueOrDefault(videoId, $"未知({videoId})"),
-                        bandwidth = Convert.ToInt64(node.GetProperty("bandwidth").ToString()) / 1000,
+                        bandwidth = node.GetProperty("bandwidth").GetInt64() / 1000,
                         baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
                         codecs = GetVideoCodec(node.GetProperty("codecid").ToString()),
-                        size = node.TryGetProperty("size", out var sizeNode) ? Convert.ToDouble(sizeNode.ToString()) : 0
+                        size = node.TryGetProperty("size", out var sizeNode) ? sizeNode.GetDouble() : 0
                     };
                     if (!tvApi && !appApi)
                     {
@@ -291,7 +291,9 @@ public static partial class Parser
                 {
                     try
                     {
-                        var firstVideo = video.First();
+                        var firstVideo = video.FirstOrDefault();
+                        if (firstVideo.ValueKind == System.Text.Json.JsonValueKind.Undefined)
+                            throw new Exception("视频轨道为空，无法提取 DRM 信息");
                         if (firstVideo.TryGetProperty("bilidrm_uri", out var drmUri))
                         {
                             var uri = drmUri.GetString() ?? "";
@@ -333,7 +335,7 @@ public static partial class Parser
                         id = audioId,
                         dfn = audioId,
                         dur = pDur,
-                        bandwidth = Convert.ToInt64(node.GetProperty("bandwidth").ToString()) / 1000,
+                        bandwidth = node.GetProperty("bandwidth").GetInt64() / 1000,
                         baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
                         codecs = codecs
                     });
@@ -352,7 +354,7 @@ public static partial class Parser
                         id = audioId,
                         dfn = audioId,
                         dur = pDur,
-                        bandwidth = Convert.ToInt64(node.GetProperty("bandwidth").ToString()) / 1000,
+                        bandwidth = node.GetProperty("bandwidth").GetInt64() / 1000,
                         baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
                         codecs = node.GetProperty("codecs").ToString()
                     });
@@ -371,7 +373,7 @@ public static partial class Parser
                             id = audioId,
                             dfn = audioId,
                             dur = pDur,
-                            bandwidth = Convert.ToInt64(node.GetProperty("bandwidth").ToString()) / 1000,
+                            bandwidth = node.GetProperty("bandwidth").GetInt64() / 1000,
                             baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
                             codecs = node.GetProperty("codecs").ToString()
                         });

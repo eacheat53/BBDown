@@ -543,8 +543,8 @@ static partial class BBDownUtil
                     points.Add(new ViewPoint()
                     {
                         title = point.GetProperty("content").GetString()!,
-                        start = int.Parse(point.GetProperty("from").ToString()),
-                        end = int.Parse(point.GetProperty("to").ToString())
+                        start = point.GetProperty("from").GetInt32(),
+                        end = point.GetProperty("to").GetInt32()
                     });
                 }
             }
@@ -604,7 +604,8 @@ static partial class BBDownUtil
     public static string RSubString(string sub)
     {
         sub = sub[(sub.LastIndexOf('/') + 1)..];
-        return sub[..sub.LastIndexOf('.')];
+        var lastDot = sub.LastIndexOf('.');
+        return lastDot >= 0 ? sub[..lastDot] : sub;
     }
 
     private static string GetMixinKey(string orig)

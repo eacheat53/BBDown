@@ -84,7 +84,7 @@ internal partial class Program
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Where(s => !string.IsNullOrEmpty(s)).ToList();
             byte index = 0;
-            firstEncoding = encodingPriorityTemp.First();
+            firstEncoding = encodingPriorityTemp.FirstOrDefault() ?? "";
             foreach (string encoding in encodingPriorityTemp)
             {
                 if (encodingPriority.ContainsKey(encoding))

@@ -16,8 +16,9 @@ public class FavListFetcher : IFetcher
     public async Task<VInfo> FetchAsync(string id)
     {
         id = id[6..];
-        var favId = id.Split(':')[0];
-        var mid = id.Split(':')[1];
+        var parts = id.Split(':', 2);
+        var favId = parts[0];
+        var mid = parts.Length > 1 ? parts[1] : throw new ArgumentException("收藏夹ID格式错误，期望 favlist:mid");
         //查找默认收藏夹
         if (favId == "")
         {
