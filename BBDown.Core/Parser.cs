@@ -129,7 +129,7 @@ public static partial class Parser
                             {
                                 dur = pDur,
                                 id = videoId,
-                                dfn = Config.qualitys[videoId],
+                                dfn = Config.qualitys.GetValueOrDefault(videoId, $"未知({videoId})"),
                                 bandwidth = Convert.ToInt64(dashVideo.GetProperty("bandwidth").ToString()) / 1000,
                                 baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
                                 codecs = GetVideoCodec(dashVideo.GetProperty("codecid").ToString()),
@@ -273,7 +273,7 @@ public static partial class Parser
                     {
                         dur = pDur,
                         id = videoId,
-                        dfn = Config.qualitys[videoId],
+                        dfn = Config.qualitys.GetValueOrDefault(videoId, $"未知({videoId})"),
                         bandwidth = Convert.ToInt64(node.GetProperty("bandwidth").ToString()) / 1000,
                         baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
                         codecs = GetVideoCodec(node.GetProperty("codecid").ToString()),
@@ -426,7 +426,7 @@ public static partial class Parser
             Video v = new()
             {
                 id = quality,
-                dfn = Config.qualitys[quality],
+                dfn = Config.qualitys.GetValueOrDefault(quality, $"未知({quality})"),
                 baseUrl = url,
                 codecs = GetVideoCodec(videoCodecid),
                 dur = (int)length / 1000,
