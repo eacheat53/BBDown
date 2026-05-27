@@ -503,8 +503,9 @@ static partial class BBDownUtil
                 return true;
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            LogDebug("检测ffmpeg版本失败: {0}", ex.Message);
         }
         return false;
     }
@@ -536,7 +537,10 @@ static partial class BBDownUtil
                 }
             }
         }
-        catch (Exception) { }
+        catch (Exception ex)
+        {
+            LogDebug("获取章节信息失败: {0}", ex.Message);
+        }
         return points;
     }
 
@@ -621,8 +625,9 @@ static partial class BBDownUtil
             LogDebug("wbi: {0}", Core.Config.WBI);
             return is_login;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            LogDebug("检测登录状态失败: {0}", ex.Message);
             return false;
         }
     }

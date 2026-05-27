@@ -25,7 +25,7 @@ static partial class BBDownMuxer
         p.StartInfo.Arguments = args;
         p.StartInfo.UseShellExecute = false;
         p.StartInfo.RedirectStandardError = true;
-        p.StartInfo.CreateNoWindow = false;
+        p.StartInfo.CreateNoWindow = true;
         p.ErrorDataReceived += (_, output) =>
         {
             if (!string.IsNullOrWhiteSpace(output.Data))
@@ -111,8 +111,9 @@ static partial class BBDownMuxer
             return MuxByMp4box(url, videoPath, audioPath, outPath, desc, title, author, episodeId, pic, lang, subs, audioOnly, videoOnly, points);
         }
 
-        if (outPath.Contains('/') && ! Directory.Exists(Path.GetDirectoryName(outPath)))
-            Directory.CreateDirectory(Path.GetDirectoryName(outPath)!);
+        var outDir = Path.GetDirectoryName(outPath);
+        if (!string.IsNullOrEmpty(outDir) && !Directory.Exists(outDir))
+            Directory.CreateDirectory(outDir);
         //----分析并生成-i参数
         StringBuilder inputArg = new();
         StringBuilder metaArg = new();

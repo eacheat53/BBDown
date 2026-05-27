@@ -100,8 +100,9 @@ internal static class BBDownDownloadUtil
             File.Move(tmpName, path, true);
             break;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            LogDebug("下载失败(重试中): {0}", ex.Message);
             if (++retry == 3) throw;
         }
         }
@@ -154,9 +155,10 @@ internal static class BBDownDownloadUtil
             {
                 if (++retry == 3) throw new Exception("服务器可能并不支持多线程下载, 请使用 --multi-thread false 关闭多线程");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                if (++retry == 3) throw new Exception($"Failed to download clip {clip.index}");
+                LogDebug("分段下载失败(重试中): {0}", ex.Message);
+                if (++retry == 3) throw new Exception($"分段 {clip.index} 下载失败，请检查网络或关闭多线程重试", ex);
             }
             }
         });

@@ -71,25 +71,7 @@ public class BBDownApiServer
                 return Results.BadRequest("输入有误");
             }
             var req = bindingResult.Result!;
-            _ = AddDownloadTaskAsync(req)
-                .ContinueWith(async task => {
-                    // send request to callback webhook
-                    if (string.IsNullOrEmpty(req.CallBackWebHook))
-                    {
-                        return;
-                    }
-                    string callback = req.CallBackWebHook;
-                    var downloadTask = await task;
-                    string? jsonContent = JsonSerializer.Serialize(downloadTask, AppJsonSerializerContext.Default.DownloadTask);
-                    try
-                    {
-                        await HTTPUtil.AppHttpClient.PostAsync(callback, new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json"));
-                    }
-                    catch (System.Exception e)
-                    {
-                        Logger.LogDebug("回调失败", e.Message);
-                    }
-                 });
+            _ = AddDownloadTaskAsync(req, req.CallBackWebHook);
             return Results.Ok();
         });
         var finishedRemovalApi = app.MapGroup("remove-finished");
@@ -117,7 +99,7 @@ public class BBDownApiServer
         app.Run(url);
     }
 
-    private async Task<DownloadTask> AddDownloadTaskAsync(MyOption option)
+    private async Task<DownloadTask> AddDownloadTaskAsync(MyOption option, string? callBackWebHook = null)
     {
         var aid = await BBDownUtil.GetAvIdAsync(option.Url);
         DownloadTask? runningTask;
@@ -160,6 +142,21 @@ public class BBDownApiServer
             runningTasks.Remove(task);
             finishedTasks.Add(task);
         }
+
+        // Webhook 回调
+        if (!string.IsNullOrEmpty(callBackWebHook))
+        {
+            string? jsonContent = JsonSerializer.Serialize(task, AppJsonSerializerContext.Default.DownloadTask);
+            try
+            {
+                await HTTPUtil.AppHttpClient.PostAsync(callBackWebHook, new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json"));
+            }
+            catch (Exception e)
+            {
+                Logger.LogDebug("回调失败: {0}", e.Message);
+            }
+        }
+
         return task;
     }
 }
