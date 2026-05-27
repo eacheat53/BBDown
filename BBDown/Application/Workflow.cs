@@ -1,0 +1,174 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using static BBDown.Core.Entity.Entity;
+using static BBDown.BBDownUtil;
+using static BBDown.Core.Logger;
+using BBDown.Core;
+using BBDown.Core.Entity;
+
+using BBDown.Core.Util;
+using System.Text.Json;
+namespace BBDown;
+
+internal partial class Program
+{
+    public static (Dictionary<string, byte> encodingPriority, Dictionary<string, int> dfnPriority, string? firstEncoding,
+        bool downloadDanmaku, BBDownDanmakuFormat[] downloadDanmakuFormats, string input, string savePathFormat, string lang, string aidOri, int delay)
+        SetUpWork(MyOption myOption)
+    {
+        //处理废弃选项
+        HandleDeprecatedOptions(myOption);
+
+        //处理冲突选项
+        HandleConflictingOptions(myOption);
+
+        //寻找并设置所需的二进制文件路径
+        FindBinaries(myOption);
+
+        //切换工作目录
+        ChangeWorkingDir(myOption);
+
+        //解析优先级
+        var encodingPriority = ParseEncodingPriority(myOption, out var firstEncoding);
+        var dfnPriority = ParseDfnPriority(myOption);
+
+        //优先使用用户设置的UA
+        HTTPUtil.UserAgent = string.IsNullOrEmpty(myOption.UserAgent) ? HTTPUtil.UserAgent : myOption.UserAgent;
+
+        bool downloadDanmaku = myOption.DownloadDanmaku || myOption.DanmakuOnly;
+        BBDownDanmakuFormat[] downloadDanmakuFormats = ParseDownloadDanmakuFormats(myOption);
+
+        string input = myOption.Url;
+        string savePathFormat = myOption.FilePattern;
+        string lang = myOption.Language;
+        string aidOri = ""; //原始aid
+        int delay = myOption.DelayPerPage;
+        Config.DEBUG_LOG = myOption.Debug;
+        Config.SKIP_SSL_CHECK = myOption.Insecure;
+        Config.HOST = myOption.Host;
+        Config.EPHOST = myOption.EpHost;
+        Config.TVHOST = myOption.TvHost;
+        Config.AREA = myOption.Area;
+        Config.COOKIE = myOption.Cookie;
+        Config.TOKEN = myOption.AccessToken.Replace("access_token=", "");
+
+        LogDebug("AppDirectory: {0}", APP_DIR);
+        if (Config.DEBUG_LOG)
+        {
+            var savedCookie = myOption.Cookie;
+            var savedToken = myOption.AccessToken;
+            myOption.Cookie = string.IsNullOrEmpty(savedCookie) ? "" : "***";
+            myOption.AccessToken = string.IsNullOrEmpty(savedToken) ? "" : "***";
+            LogDebug("运行参数：{0}", JsonSerializer.Serialize(myOption, MyOptionJsonContext.Default.MyOption));
+            myOption.Cookie = savedCookie;
+            myOption.AccessToken = savedToken;
+        }
+        return (encodingPriority, dfnPriority, firstEncoding, downloadDanmaku, downloadDanmakuFormats, input, savePathFormat, lang, aidOri, delay);
+    }
+
+    public static async Task<(string fetchedAid, VInfo vInfo, string apiType)> GetVideoInfoAsync(MyOption myOption, string aidOri, string input)
+    {
+        // 加载认证信息
+        LoadCredentials(myOption);
+
+        // 检测是否登录了账号
+        if (myOption is { UseIntlApi: false, UseTvApi: false } && Config.AREA == "")
+        {
+            Log("检测账号登录...");
+            if (!await CheckLogin(Config.COOKIE))
+            {
+                LogWarn("========================================");
+                LogWarn("  你尚未登录B站账号！");
+                LogWarn("  未登录状态下仅能下载6分钟试看片段。");
+                LogWarn("  请运行 BBDown login 扫码登录以获取完整视频。");
+                LogWarn("========================================");
+            }
+        }
+
+        Log("获取aid...");
+        aidOri = await GetAvIdAsync(input);
+        Log($"获取aid结束: {aidOri}");
+
+        if (string.IsNullOrEmpty(aidOri))
+        {
+            throw new Exception("输入有误");
+        }
+
+        Log("获取视频信息...");
+        IFetcher fetcher = FetcherFactory.CreateFetcher(aidOri, myOption.UseIntlApi);
+        VInfo? vInfo = null;
+
+        // 只输入 EP/SS 时优先按番剧查找，如果找不到则尝试按课程查找
+        try
+        {
+            vInfo = await fetcher.FetchAsync(aidOri);
+        }
+        catch (Exception e) when (e is KeyNotFoundException or InvalidOperationException)
+        {
+            // B站返回非番剧JSON结构（可能是课程），尝试按课程查找
+            if (aidOri.StartsWith("cheese:")) throw; // 已经按课程查找过，不再重复尝试
+
+            LogWarn("未找到此 EP/SS 对应番剧信息, 正在尝试按课程查找。");
+
+            aidOri = aidOri.Replace("ep", "cheese");
+            Log("新的 aid: " + aidOri);
+
+            if (string.IsNullOrEmpty(aidOri))
+            {
+                throw new Exception("输入有误");
+            }
+
+            Log("获取视频信息...");
+            fetcher = FetcherFactory.CreateFetcher(aidOri, myOption.UseIntlApi);
+            vInfo = await fetcher.FetchAsync(aidOri);
+        }
+
+        string title = vInfo.Title;
+        long pubTime = vInfo.PubTime;
+        LogColor("视频标题: " + title);
+        if (pubTime != 0)
+        {
+            Log("发布时间: " + FormatTimeStamp(pubTime, "yyyy-MM-dd HH:mm:ss zzz"));
+        }
+        var bvid = vInfo.PagesInfo.FirstOrDefault()?.bvid;
+        if (!string.IsNullOrEmpty(bvid) && !myOption.UseIntlApi)
+        {
+            Log($"视频URL: https://www.bilibili.com/video/{bvid}/");
+        }
+        var mid = vInfo.PagesInfo.FirstOrDefault(p => !string.IsNullOrEmpty(p.ownerMid))?.ownerMid;
+        if (!string.IsNullOrEmpty(mid))
+        {
+            Log($"UP主页: https://space.bilibili.com/{mid}");
+        }
+
+        if (vInfo.IsSteinGate && myOption.UseTvApi)
+        {
+            Log("视频为互动视频，暂时不支持tv下载，修改为默认下载");
+            myOption.UseTvApi = false;
+        }
+        string apiType = myOption.UseTvApi ? "TV" : (myOption.UseAppApi ? "APP" : (myOption.UseIntlApi ? "INTL" : "WEB"));
+
+        //打印分P信息
+        List<Page> pagesInfo = vInfo.PagesInfo;
+        bool more = false;
+        foreach (Page p in pagesInfo)
+        {
+            if (!myOption.ShowAll)
+            {
+                if (more && p.index != pagesInfo.Count) continue;
+                if (!more && p.index > 5)
+                {
+                    Log("......");
+                    more = true;
+                    continue;
+                }
+            }
+
+            Log($"P{p.index}: [{p.cid}] [{p.title}] [{FormatTime(p.dur)}]");
+        }
+        return (aidOri, vInfo, apiType);
+    }
+
+}
