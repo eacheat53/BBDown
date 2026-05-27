@@ -21,7 +21,12 @@ public static class Entity
         public string? ownerMid;
         public string bvid
         {
-            get => BilibiliBvConverter.Encode(long.Parse(aid));
+            get
+            {
+                if (long.TryParse(aid, out var aidNum))
+                    return BilibiliBvConverter.Encode(aidNum);
+                return aid; // fallback: return raw aid if not numeric
+            }
         }
         public List<ViewPoint> points = new();
 

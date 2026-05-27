@@ -203,6 +203,7 @@ static partial class BBDownMuxer
 
     public static void MergeFLV(string[] files, string outPath)
     {
+        if (files.Length == 0) return;
         if (files.Length == 1)
         {
             File.Move(files[0], outPath);
