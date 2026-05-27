@@ -363,11 +363,16 @@ BBDown/bin/Debug/net9.0/BBDown --help
 
 # 致谢
 
+本项目继承自 [nilaoda/BBDown](https://github.com/nilaoda/BBDown)，在此感谢原作者的开创性工作。
+
+### 本分支额外致谢
+* https://github.com/spectreconsole/spectre.console
+
+### 原作者致谢
 * https://github.com/codebude/QRCoder
 * https://github.com/icsharpcode/SharpZipLib
 * https://github.com/protocolbuffers/protobuf
 * https://github.com/grpc/grpc
-* https://github.com/spectreconsole/spectre.console
 * https://github.com/SocialSisterYi/bilibili-API-collect
 * https://github.com/SeeFlowerX/bilibili-grpc-api
 * https://github.com/FFmpeg/FFmpeg
