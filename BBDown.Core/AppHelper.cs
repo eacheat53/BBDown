@@ -54,6 +54,10 @@ static class AppHelper
     /// <returns></returns>
     public static async Task<string> DoReqAsync(string aid, string cid, string epId, string qn, bool bangumi, string encoding, string appkey = "")
     {
+        static long ParseId(string value, string name) =>
+            long.TryParse(value, out var result)
+                ? result
+                : throw new ArgumentException($"{name} 必须是有效的数字 ID，当前值: '{value}'");
 
         var headers = GetHeader(appkey);
         LogDebug("App-Req-Headers: {0}", JsonSerializer.Serialize(headers, JsonContext.Default.DictionaryStringString));
@@ -63,12 +67,12 @@ static class AppHelper
         {
             if (!(string.IsNullOrEmpty(encoding) || encoding == "HEVC"))
                 LogWarn("APP的番剧不支持 HEVC 以外的编码");
-            var body = GetPayload(Convert.ToInt64(epId), Convert.ToInt64(cid), Convert.ToInt64(qn), PlayViewReq.Types.CodeType.Code265);
+            var body = GetPayload(ParseId(epId, nameof(epId)), ParseId(cid, nameof(cid)), ParseId(qn, nameof(qn)), PlayViewReq.Types.CodeType.Code265);
             data = await GetPostResponseAsync(API2, body, headers);
         }
         else
         {
-            var body = GetPayload(Convert.ToInt64(aid), Convert.ToInt64(cid), Convert.ToInt64(qn), GetVideoCodeType(encoding));
+            var body = GetPayload(ParseId(aid, nameof(aid)), ParseId(cid, nameof(cid)), ParseId(qn, nameof(qn)), GetVideoCodeType(encoding));
             data = await GetPostResponseAsync(API, body, headers);
         }
         var resp = new MessageParser<PlayViewReply>(() => new PlayViewReply()).ParseFrom(ReadMessage(data));
