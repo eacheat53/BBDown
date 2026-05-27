@@ -25,7 +25,8 @@ internal static class BBDownLoginUtil
         {
             Log("获取登录地址...");
             string loginUrl = "https://passport.bilibili.com/x/passport-login/web/qrcode/generate?source=main-fe-header";
-            string url = JsonDocument.Parse(await HTTPUtil.GetWebSourceAsync(loginUrl)).RootElement.GetProperty("data").GetProperty("url").ToString();
+            using var loginDoc = JsonDocument.Parse(await HTTPUtil.GetWebSourceAsync(loginUrl));
+            string url = loginDoc.RootElement.GetProperty("data").GetProperty("url").GetString()!;
             string qrcodeKey = GetQueryString("qrcode_key", url);
             //Log(oauthKey);
             //Log(url);
@@ -43,7 +44,8 @@ internal static class BBDownLoginUtil
             {
                 await Task.Delay(1000);
                 string w = await GetLoginStatusAsync(qrcodeKey);
-                int code = JsonDocument.Parse(w).RootElement.GetProperty("data").GetProperty("code").GetInt32();
+                using var pollDoc = JsonDocument.Parse(w);
+                int code = pollDoc.RootElement.GetProperty("data").GetProperty("code").GetInt32();
                 if (code == 86038)
                 {
                     LogColor("二维码已过期, 请重新执行登录指令.");
@@ -63,7 +65,8 @@ internal static class BBDownLoginUtil
                 }
                 else
                 {
-                    string cc = JsonDocument.Parse(w).RootElement.GetProperty("data").GetProperty("url").ToString();
+                    using var successDoc = JsonDocument.Parse(w);
+                    string cc = successDoc.RootElement.GetProperty("data").GetProperty("url").GetString()!;
                     Log("登录成功: SESSDATA=" + GetQueryString("SESSDATA", cc));
                     //导出cookie, 转义英文逗号 否则部分场景会出问题
                     var cookiePath = Path.Combine(Program.APP_DIR, "BBDown.data");
@@ -87,8 +90,9 @@ internal static class BBDownLoginUtil
             Log("获取登录地址...");
             byte[] responseArray = await (await HTTPUtil.AppHttpClient.PostAsync(loginUrl, new FormUrlEncodedContent(parameters.ToDictionary()))).Content.ReadAsByteArrayAsync();
             string web = Encoding.UTF8.GetString(responseArray);
-            string url = JsonDocument.Parse(web).RootElement.GetProperty("data").GetProperty("url").ToString();
-            string authCode = JsonDocument.Parse(web).RootElement.GetProperty("data").GetProperty("auth_code").ToString();
+            using var authDoc = JsonDocument.Parse(web);
+            string url = authDoc.RootElement.GetProperty("data").GetProperty("url").GetString()!;
+            string authCode = authDoc.RootElement.GetProperty("data").GetProperty("auth_code").GetString()!;
             Log("生成二维码...");
             QRCodeGenerator qrGenerator = new();
             QRCodeData qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
@@ -106,7 +110,8 @@ internal static class BBDownLoginUtil
                 await Task.Delay(1000);
                 responseArray = await (await HTTPUtil.AppHttpClient.PostAsync(pollUrl, new FormUrlEncodedContent(parameters.ToDictionary()))).Content.ReadAsByteArrayAsync();
                 web = Encoding.UTF8.GetString(responseArray);
-                string code = JsonDocument.Parse(web).RootElement.GetProperty("code").ToString();
+                using var pollDoc2 = JsonDocument.Parse(web);
+                string code = pollDoc2.RootElement.GetProperty("code").GetString()!;
                 if (code == "86038")
                 {
                     LogColor("二维码已过期, 请重新执行登录指令.");
@@ -118,7 +123,8 @@ internal static class BBDownLoginUtil
                 }
                 else
                 {
-                    string cc = JsonDocument.Parse(web).RootElement.GetProperty("data").GetProperty("access_token").ToString();
+                    using var successDoc2 = JsonDocument.Parse(web);
+                    string cc = successDoc2.RootElement.GetProperty("data").GetProperty("access_token").GetString()!;
                     Log("登录成功: AccessToken=" + cc);
                     //导出cookie
                     var tvTokenPath = Path.Combine(Program.APP_DIR, "BBDownTV.data");

@@ -240,7 +240,7 @@ public static partial class Parser
                     }
                 }
             }
-            catch (Exception) { /* non-critical metadata, ignore */ }
+            catch (Exception e) { LogDebug("杜比音频解析失败: {0}", e.Message); }
 
             //处理Hi-Res无损
             try
@@ -257,7 +257,7 @@ public static partial class Parser
                     }
                 }
             }
-            catch (Exception) { /* non-critical metadata, ignore */ }
+            catch (Exception e) { LogDebug("Hi-Res音频解析失败: {0}", e.Message); }
 
             if (video != null)
             {

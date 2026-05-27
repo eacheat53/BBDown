@@ -12,6 +12,8 @@
     <ToolCommandName>BBDown</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>$(NoWarn);IL3050</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
