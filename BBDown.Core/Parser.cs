@@ -484,7 +484,10 @@ public static partial class Parser
 
     private static string GetMaxQn()
     {
-        return Config.qualitys.Keys.Select(int.Parse).Max().ToString();
+        var max = Config.qualitys.Keys
+            .Select(k => int.TryParse(k, out var v) ? v : 0)
+            .Max();
+        return max.ToString();
     }
 
     private static string GetTimeStamp(bool bflag)
