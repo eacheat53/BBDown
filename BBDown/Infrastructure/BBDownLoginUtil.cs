@@ -72,7 +72,7 @@ internal static class BBDownLoginUtil
                     var cookiePath = Path.Combine(Program.APP_DIR, "BBDown.data");
                     await File.WriteAllTextAsync(cookiePath, cc[(cc.IndexOf('?') + 1)..].Replace("&", ";").Replace(",", "%2C"));
                     SetOwnerOnlyPermission(cookiePath);
-                    File.Delete("qrcode.png");
+                    try { File.Delete("qrcode.png"); } catch (IOException) { /* file may be locked by viewer */ }
                     break;
                 }
             }
@@ -130,7 +130,7 @@ internal static class BBDownLoginUtil
                     var tvTokenPath = Path.Combine(Program.APP_DIR, "BBDownTV.data");
                     await File.WriteAllTextAsync(tvTokenPath, "access_token=" + cc);
                     SetOwnerOnlyPermission(tvTokenPath);
-                    File.Delete("qrcode.png");
+                    try { File.Delete("qrcode.png"); } catch (IOException) { /* file may be locked by viewer */ }
                     break;
                 }
             }

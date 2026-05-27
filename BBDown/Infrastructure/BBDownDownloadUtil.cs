@@ -196,7 +196,7 @@ internal static class BBDownDownloadUtil
         httpRequestMessage.Headers.TryAddWithoutValidation("User-Agent", "Mozilla/5.0");
         httpRequestMessage.Headers.TryAddWithoutValidation("Cookie", Core.Config.COOKIE);
         httpRequestMessage.RequestUri = new(url);
-        var response = (await AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead)).EnsureSuccessStatusCode();
+        using var response = (await AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead)).EnsureSuccessStatusCode();
         long totalSizeBytes = response.Content.Headers.ContentLength ?? 0;
 
         return totalSizeBytes;
