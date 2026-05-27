@@ -18,7 +18,7 @@ internal partial class Program
     {
         List<string>? selectedPages = null;
         List<Page> pagesInfo = vInfo.PagesInfo;
-        string selectPage = myOption.SelectPage.ToUpper().Trim().Trim(',');
+        string selectPage = myOption.SelectPage.ToUpperInvariant().Trim().Trim(',');
 
         if (string.IsNullOrEmpty(selectPage))
         {

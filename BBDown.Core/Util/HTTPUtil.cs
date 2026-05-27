@@ -102,10 +102,10 @@ public static class HTTPUtil
     {
         LogDebug("Post to: {0}, data: {1}", Url, Convert.ToBase64String(postData));
 
-        ByteArrayContent content = new(postData);
+        using ByteArrayContent content = new(postData);
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/grpc");
 
-        HttpRequestMessage request = new()
+        using HttpRequestMessage request = new()
         {
             RequestUri = new Uri(Url),
             Method = HttpMethod.Post,

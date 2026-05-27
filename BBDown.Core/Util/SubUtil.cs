@@ -18,7 +18,7 @@ public static partial class SubUtil
         if (NonCapsRegex().Match(key) is { Success: true } result)
         {
             var v = result.Value;
-            key = key.Replace(v, v.ToUpper());
+            key = key.Replace(v, v.ToUpperInvariant());
         }
 
         return key switch

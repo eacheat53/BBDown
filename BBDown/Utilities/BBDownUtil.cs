@@ -53,7 +53,7 @@ static partial class BBDownUtil
             {
                 avid = AvRegex().Match(input).Groups[1].Value;
             }
-            else if (input.ToLower().Contains("video/bv"))
+            else if (input.ToLowerInvariant().Contains("video/bv"))
             {
                 avid = GetAidByBV(BVRegex().Match(input).Groups[1].Value);
             }
@@ -166,13 +166,13 @@ static partial class BBDownUtil
                 avid = $"ep:{epId}";
             }
         }
-        else if (input.ToLower().StartsWith("bv"))
+        else if (input.ToLowerInvariant().StartsWith("bv"))
         {
             avid = GetAidByBV(input[3..]);
         }
-        else if (input.ToLower().StartsWith("av")) // av
+        else if (input.ToLowerInvariant().StartsWith("av")) // av
         {
-            avid = input.ToLower()[2..];
+            avid = input.ToLowerInvariant()[2..];
         }
         else if (input.StartsWith("cheese/")) // ^cheese/(ep|ss)\d+ 格式
         {
@@ -352,7 +352,7 @@ static partial class BBDownUtil
         DirectoryInfo d = new(dir);
         foreach (FileInfo fi in d.GetFiles())
         {
-            if (fi.Extension.ToUpper() == ext.ToUpper())
+            if (fi.Extension.Equals(ext, StringComparison.OrdinalIgnoreCase))
             {
                 al.Add(fi.FullName);
             }

@@ -78,7 +78,7 @@ internal partial class Program
         if (myOption.EncodingPriority != null)
         {
             var encodingPriorityTemp = myOption.EncodingPriority
-                .ToUpper()
+                .ToUpperInvariant()
                 .Replace('，', ',')
                 .Replace("-", string.Empty)
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -100,7 +100,7 @@ internal partial class Program
     {
         if (string.IsNullOrEmpty(myOption.DownloadDanmakuFormats)) return BBDownDanmakuFormatInfo.DefaultFormats;
 
-        var formats = myOption.DownloadDanmakuFormats.Replace("，", ",").ToLower().Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        var formats = myOption.DownloadDanmakuFormats.Replace("，", ",").ToLowerInvariant().Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (formats.Any(format => !BBDownDanmakuFormatInfo.AllFormatNames.Contains(format)))
         {
             LogError($"包含不支持的下载弹幕格式：{myOption.DownloadDanmakuFormats}");
@@ -120,7 +120,7 @@ internal partial class Program
         var dfnPriority = new Dictionary<string, int>();
         if (myOption.DfnPriority != null)
         {
-            var dfnPriorityTemp = myOption.DfnPriority.Replace("，", ",").Split(',').Select(s => s.ToUpper().Trim()).Where(s => !string.IsNullOrEmpty(s));
+            var dfnPriorityTemp = myOption.DfnPriority.Replace("，", ",").Split(',').Select(s => s.ToUpperInvariant().Trim()).Where(s => !string.IsNullOrEmpty(s));
             int index = 0;
             foreach (string dfn in dfnPriorityTemp)
             {
