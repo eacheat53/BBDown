@@ -62,7 +62,10 @@ static partial class BBDownMuxer
         if (points != null && points.Any())
         {
             var meta = GetMp4boxMetaString(points);
-            var metaFile = Path.Combine(Path.GetDirectoryName(string.IsNullOrEmpty(videoPath) ? audioPath : videoPath)!, "chapters");
+            var baseDir = Path.GetDirectoryName(string.IsNullOrEmpty(videoPath) ? audioPath : videoPath);
+            if (string.IsNullOrEmpty(baseDir))
+                baseDir = ".";
+            var metaFile = Path.Combine(baseDir, "chapters");
             File.WriteAllText(metaFile, meta);
             inputArg.Append($" -chap  \"{metaFile}\"  ");
         }
@@ -167,7 +170,10 @@ static partial class BBDownMuxer
         if (points != null && points.Any())
         {
             var meta = GetFFmpegMetaString(points);
-            var metaFile = Path.Combine(Path.GetDirectoryName(string.IsNullOrEmpty(videoPath) ? audioPath : videoPath)!, "chapters");
+            var baseDir = Path.GetDirectoryName(string.IsNullOrEmpty(videoPath) ? audioPath : videoPath);
+            if (string.IsNullOrEmpty(baseDir))
+                baseDir = ".";
+            var metaFile = Path.Combine(baseDir, "chapters");
             File.WriteAllText(metaFile, meta);
             inputArg.Append($"-i \"{metaFile}\" -map_chapters {inputCount} ");
         }
