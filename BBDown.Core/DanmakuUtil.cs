@@ -185,7 +185,7 @@ public static class DanmakuUtil
             }
             catch (Exception e)
             {
-                Log(e.Message);
+                LogDebug("弹幕时间解析失败: {0}", e.Message);
             }
             FontSize = attrs[2];
             try
