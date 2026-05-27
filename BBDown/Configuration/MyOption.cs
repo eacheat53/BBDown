@@ -9,15 +9,15 @@ public class MyOption : CommandSettings
     [Description("视频地址 或 av|bv|BV|ep|ss")]
     public string Url { get; set; } = "";
 
-    [CommandOption("-tv|--use-tv-api")]
+    [CommandOption("-t|--use-tv-api")]
     [Description("使用TV端解析模式")]
     public bool UseTvApi { get; set; }
 
-    [CommandOption("-app|--use-app-api")]
+    [CommandOption("-a|--use-app-api")]
     [Description("使用APP端解析模式")]
     public bool UseAppApi { get; set; }
 
-    [CommandOption("-intl|--use-intl-api")]
+    [CommandOption("--use-intl-api")]
     [Description("使用国际版(东南亚视频)解析模式")]
     public bool UseIntlApi { get; set; }
 
@@ -33,7 +33,7 @@ public class MyOption : CommandSettings
     [Description("画质优先级,用逗号分隔 例: \"8K 超高清, 1080P 高码率, HDR 真彩, 杜比视界\"")]
     public string? DfnPriority { get; set; }
 
-    [CommandOption("-info|--only-show-info")]
+    [CommandOption("-I|--only-show-info")]
     [Description("仅解析而不进行下载")]
     public bool OnlyShowInfo { get; set; }
 
@@ -41,19 +41,19 @@ public class MyOption : CommandSettings
     [Description("展示所有分P标题")]
     public bool ShowAll { get; set; }
 
-    [CommandOption("-aria2|--use-aria2c")]
+    [CommandOption("--use-aria2c")]
     [Description("调用aria2c进行下载(你需要自行准备好二进制可执行文件)")]
     public bool UseAria2c { get; set; }
 
-    [CommandOption("-ia|--interactive")]
+    [CommandOption("-i|--interactive")]
     [Description("交互式选择清晰度")]
     public bool Interactive { get; set; }
 
-    [CommandOption("-hs|--hide-streams")]
+    [CommandOption("--hide-streams")]
     [Description("不要显示所有可用音视频流")]
     public bool HideStreams { get; set; }
 
-    [CommandOption("-mt|--multi-thread")]
+    [CommandOption("--multi-thread")]
     [Description("使用多线程下载(默认开启)")]
     public bool MultiThread { get; set; } = true;
 
@@ -93,7 +93,7 @@ public class MyOption : CommandSettings
     [Description("跳过SSL证书验证(仅用于抓包/代理场景)")]
     public bool Insecure { get; set; }
 
-    [CommandOption("-drm|--decrypt-drm")]
+    [CommandOption("--decrypt-drm")]
     [Description("尝试解密DRM保护视频")]
     public bool DecryptDrm { get; set; }
 
@@ -125,11 +125,11 @@ public class MyOption : CommandSettings
     [Description("下载音视频时强制使用HTTP协议替换HTTPS(默认开启)")]
     public bool ForceHttp { get; set; } = true;
 
-    [CommandOption("-dd|--download-danmaku")]
+    [CommandOption("-d|--download-danmaku")]
     [Description("下载弹幕")]
     public bool DownloadDanmaku { get; set; } = false;
 
-    [CommandOption("-ddf|--download-danmaku-formats")]
+    [CommandOption("--download-danmaku-formats")]
     [Description("指定需下载的弹幕格式, 用逗号分隔")]
     public string? DownloadDanmakuFormats { get; set; }
 
@@ -165,7 +165,7 @@ public class MyOption : CommandSettings
     [Description("设置混流的音频语言(代码), 如chi, jpn等")]
     public string Language { get; set; } = "";
 
-    [CommandOption("-ua|--user-agent")]
+    [CommandOption("-u|--user-agent")]
     [Description("指定user-agent, 否则使用随机user-agent")]
     public string UserAgent { get; set; } = "";
 
@@ -173,7 +173,7 @@ public class MyOption : CommandSettings
     [Description("设置字符串cookie用以下载网页接口的会员内容")]
     public string Cookie { get; set; } = "";
 
-    [CommandOption("-token|--access-token")]
+    [CommandOption("--access-token")]
     [Description("设置access_token用以下载TV/APP接口的会员内容")]
     public string AccessToken { get; set; } = "";
 
@@ -237,13 +237,13 @@ public class MyOption : CommandSettings
     [CommandOption("--aria2c-proxy", IsHidden = true)]
     public string Aria2cProxy { get; set; } = "";
 
-    [CommandOption("-hevc|--only-hevc", IsHidden = true)]
+    [CommandOption("--only-hevc", IsHidden = true)]
     public bool OnlyHevc { get; set; }
 
-    [CommandOption("-avc|--only-avc", IsHidden = true)]
+    [CommandOption("--only-avc", IsHidden = true)]
     public bool OnlyAvc { get; set; }
 
-    [CommandOption("-av1|--only-av1", IsHidden = true)]
+    [CommandOption("--only-av1", IsHidden = true)]
     public bool OnlyAv1 { get; set; }
 
     [CommandOption("--add-dfn-subfix", IsHidden = true)]
