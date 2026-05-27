@@ -390,11 +390,9 @@ partial class Program
                         if (myOption.SubOnly && File.Exists(s.path) && File.ReadAllText(s.path) != "")
                         {
                             var _outSubPath = FormatSavePath(savePathFormat, title, null, null, p, pagesCount, apiType, pubTime);
-                            if (_outSubPath.Contains('/'))
-                            {
-                                if (!Directory.Exists(_outSubPath.Split('/').First()))
-                                    Directory.CreateDirectory(_outSubPath.Split('/').First());
-                            }
+                            var dir = Path.GetDirectoryName(_outSubPath);
+                            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                                Directory.CreateDirectory(dir);
                             _outSubPath = Path.ChangeExtension(_outSubPath, $".{s.lan}.srt");
                             File.Move(s.path, _outSubPath, true);
                         }
@@ -638,7 +636,7 @@ partial class Program
                     LogError("合并失败"); return;
                 }
                 Log("清理临时文件...");
-                Thread.Sleep(200);
+                await Task.Delay(200);
                 if (parsedResult.VideoTracks.Any()) File.Delete(videoPath);
                 if (parsedResult.AudioTracks.Any()) File.Delete(audioPath);
                 if (p.points.Any()) File.Delete(Path.Combine(Path.GetDirectoryName(string.IsNullOrEmpty(videoPath) ? audioPath : videoPath)!, "chapters"));
@@ -730,7 +728,7 @@ partial class Program
                     LogError("合并失败"); return;
                 }
                 Log("清理临时文件...");
-                Thread.Sleep(200);
+                await Task.Delay(200);
                 if (parsedResult.VideoTracks.Count != 0) File.Delete(videoPath);
                 foreach (var s in subtitleInfo) File.Delete(s.path);
                 foreach (var a in audioMaterial) File.Delete(a.path);

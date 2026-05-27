@@ -45,10 +45,28 @@ public class BBDownApiServer
         app = builder.Build();
         app.UseCors("AllowAnyOrigin");
         var taskStatusApi = app.MapGroup("/get-tasks");
-        taskStatusApi.MapGet("/", handler: () => { lock (_taskLock) { return Results.Json(new DownloadTaskCollection(runningTasks, finishedTasks), AppJsonSerializerContext.Default.DownloadTaskCollection); } });
-        taskStatusApi.MapGet("/running", handler: () => { lock (_taskLock) { return Results.Json(runningTasks, AppJsonSerializerContext.Default.ListDownloadTask); } });
-        taskStatusApi.MapGet("/finished", handler: () => { lock (_taskLock) { return Results.Json(finishedTasks, AppJsonSerializerContext.Default.ListDownloadTask); } });
-        taskStatusApi.MapGet("/{id}", (string id) =>
+        taskStatusApi.MapGet("/", handler: () =>
+        {
+            lock (_taskLock)
+            {
+                return Results.Json(new DownloadTaskCollection(runningTasks, finishedTasks), AppJsonSerializerContext.Default.DownloadTaskCollection);
+            }
+        });
+        taskStatusApi.MapGet("/running", handler: () =>
+        {
+            lock (_taskLock)
+            {
+                return Results.Json(runningTasks, AppJsonSerializerContext.Default.ListDownloadTask);
+            }
+        });
+        taskStatusApi.MapGet("/finished", handler: () =>
+        {
+            lock (_taskLock)
+            {
+                return Results.Json(finishedTasks, AppJsonSerializerContext.Default.ListDownloadTask);
+            }
+        });
+        taskStatusApi.MapGet("/{id}", (string id, CancellationToken token) =>
         {
             DownloadTask? task, rtask;
             lock (_taskLock)
@@ -63,11 +81,10 @@ public class BBDownApiServer
             }
             return Results.Json(task, AppJsonSerializerContext.Default.DownloadTask);
         });
-        app.MapPost("/add-task", (MyOptionBindingResult<ServeRequestOptions> bindingResult) =>
+        app.MapPost("/add-task", (MyOptionBindingResult<ServeRequestOptions> bindingResult, CancellationToken token) =>
         {
             if (!bindingResult.IsValid)
             {
-                //var exception = bindingResult.Exception;
                 return Results.BadRequest("输入有误");
             }
             var req = bindingResult.Result!;
@@ -75,9 +92,21 @@ public class BBDownApiServer
             return Results.Ok();
         });
         var finishedRemovalApi = app.MapGroup("remove-finished");
-        finishedRemovalApi.MapGet("/", () => { lock (_taskLock) { finishedTasks.RemoveAll(t => true); } return Results.Ok(); });
-        finishedRemovalApi.MapGet("/failed", () => { lock (_taskLock) { finishedTasks.RemoveAll(t => !t.IsSuccessful); } return Results.Ok(); });
-        finishedRemovalApi.MapGet("/{id}", (string id) => { lock (_taskLock) { finishedTasks.RemoveAll(t => t.Aid == id); } return Results.Ok(); });
+        finishedRemovalApi.MapGet("/", () =>
+        {
+            lock (_taskLock) { finishedTasks.RemoveAll(t => true); }
+            return Results.Ok();
+        });
+        finishedRemovalApi.MapGet("/failed", () =>
+        {
+            lock (_taskLock) { finishedTasks.RemoveAll(t => !t.IsSuccessful); }
+            return Results.Ok();
+        });
+        finishedRemovalApi.MapGet("/{id}", (string id) =>
+        {
+            lock (_taskLock) { finishedTasks.RemoveAll(t => t.Aid == id); }
+            return Results.Ok();
+        });
     }
 
     public void Run(string url)
