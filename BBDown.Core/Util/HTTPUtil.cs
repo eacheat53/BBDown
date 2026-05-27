@@ -9,14 +9,18 @@ public static class HTTPUtil
 
     private static HttpClient CreateAppHttpClient()
     {
-        var handler = new HttpClientHandler
+        var handler = new SocketsHttpHandler
         {
             AllowAutoRedirect = true,
             AutomaticDecompression = DecompressionMethods.All,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
         };
         if (Config.SKIP_SSL_CHECK)
         {
-            handler.ServerCertificateCustomValidationCallback = (_, _, _, _) => true;
+            handler.SslOptions = new System.Net.Security.SslClientAuthenticationOptions
+            {
+                RemoteCertificateValidationCallback = (_, _, _, _) => true,
+            };
             LogDebug("SSL 证书验证已禁用");
         }
         return new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(2) };
