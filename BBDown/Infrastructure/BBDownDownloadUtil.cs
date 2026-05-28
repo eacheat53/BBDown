@@ -74,9 +74,29 @@ internal static class BBDownDownloadUtil
             throw new Exception("Retry...");
     }
 
+    private static readonly Dictionary<string, SemaphoreSlim> _downloadLocks = new();
+    private static readonly object _lockFactory = new();
+
+    private static SemaphoreSlim GetDownloadLock(string path)
+    {
+        lock (_lockFactory)
+        {
+            if (!_downloadLocks.TryGetValue(path, out var semaphore))
+            {
+                semaphore = new SemaphoreSlim(1, 1);
+                _downloadLocks[path] = semaphore;
+            }
+            return semaphore;
+        }
+    }
+
     public static async Task DownloadFileAsync(string url, string path, DownloadConfig config)
     {
         if (string.IsNullOrEmpty(url)) return;
+        var downloadLock = GetDownloadLock(path);
+        await downloadLock.WaitAsync();
+        try
+        {
         if (config.ForceHttp) url = ReplaceUrl(url);
         LogDebug("Start downloading: {0}", url);
         string desDir = Path.GetDirectoryName(path)!;
@@ -106,10 +126,20 @@ internal static class BBDownDownloadUtil
             if (++retry == 3) throw;
         }
         }
+        }
+        finally
+        {
+            downloadLock.Release();
+        }
     }
 
     public static async Task MultiThreadDownloadFileAsync(string url, string path, DownloadConfig config)
     {
+        if (string.IsNullOrEmpty(url)) return;
+        var downloadLock = GetDownloadLock(path);
+        await downloadLock.WaitAsync();
+        try
+        {
         if (config.ForceHttp) url = ReplaceUrl(url);
         LogDebug("Start downloading: {0}", url);
         if (config.UseAria2c)
@@ -162,6 +192,11 @@ internal static class BBDownDownloadUtil
             }
             }
         });
+        }
+        finally
+        {
+            downloadLock.Release();
+        }
     }
 
     //此函数主要是切片下载逻辑
