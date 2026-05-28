@@ -56,6 +56,7 @@ internal static class BBDownDownloadUtil
 
         using var stream = await response.Content.ReadAsStreamAsync(token);
         var totalBytes = downloadedBytes + (response.Content.Headers.ContentLength ?? long.MaxValue - downloadedBytes);
+        long writeStartPosition = fileStream.Position;
 
         const int blockSize = 1048576 / 4;
         var buffer = new byte[blockSize];
@@ -70,8 +71,12 @@ internal static class BBDownDownloadUtil
             onProgress(id, downloadedBytes - fromPosition, totalBytes);
         }
 
-        if (response.Content.Headers.ContentLength != null && (response.Content.Headers.ContentLength != new FileInfo(tmpName).Length))
-            throw new InvalidOperationException("Retry...");
+        if (response.Content.Headers.ContentLength != null)
+        {
+            long written = fileStream.Position - writeStartPosition;
+            if (written != response.Content.Headers.ContentLength.Value)
+                throw new InvalidOperationException("写入大小与HTTP响应声明不符，触发重试");
+        }
     }
 
     private static readonly Dictionary<string, SemaphoreSlim> _downloadLocks = new();
@@ -111,6 +116,23 @@ internal static class BBDownDownloadUtil
         }
         int retry = 0;
         string tmpName = Path.Combine(desDir, Path.GetFileNameWithoutExtension(path) + ".tmp");
+        long fileSize = await GetFileSizeAsync(url, token);
+        if (File.Exists(path) && new FileInfo(path).Length == fileSize)
+        {
+            Logger.LogDebug("文件已下载过, 跳过下载");
+            return;
+        }
+        if (fileSize > 0 && File.Exists(tmpName) && new FileInfo(tmpName).Length == fileSize)
+        {
+            Logger.LogDebug("断点续传: 检测到已完整下载的临时文件, 直接移动");
+            File.Move(tmpName, path, true);
+            return;
+        }
+        if (File.Exists(tmpName))
+        {
+            Logger.LogDebug("断点续传: 临时文件大小不匹配, 删除残留: {0}", tmpName);
+            File.Delete(tmpName);
+        }
         while (retry < 3)
         {
         try
