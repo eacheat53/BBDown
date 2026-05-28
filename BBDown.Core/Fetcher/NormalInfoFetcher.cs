@@ -31,15 +31,15 @@ public partial class NormalInfoFetcher : IFetcher
 
         // 分p信息
         List<Page> pagesInfo = new();
-        var pages = data.GetProperty("pages").EnumerateArray().ToList();
+        var pages = data.EnumerateArraySafe("pages").ToList();
         foreach (var page in pages)
         {
-            Page p = new(page.GetProperty("page").GetInt32(),
+            Page p = new(page.GetInt32Safe("page"),
                 id,
-                page.GetProperty("cid").ToString(),
+                page.GetValueAsStringSafe("cid"),
                 "", //epid
-                page.GetProperty("part").ToString().Trim(),
-                page.GetProperty("duration").GetInt32(),
+                page.GetValueAsStringSafe("part").Trim(),
+                page.GetInt32Safe("duration"),
                 page.TryGetProperty("dimension", out var dim) && dim.TryGetProperty("width", out var w) && dim.TryGetProperty("height", out var h) ? $"{w}x{h}" : "",
                 pubTime, //分p视频没有发布时间
                 "",
@@ -62,24 +62,24 @@ public partial class NormalInfoFetcher : IFetcher
             if (interactionNode is { InnerText.Length: > 0 })
             {
                 using var graphDoc = JsonDocument.Parse(interactionNode.InnerText);
-                var graphVersion = graphDoc.RootElement.GetProperty("graph_version").GetInt64();
+                var graphVersion = graphDoc.RootElement.GetInt64Safe("graph_version");
                 var edgeInfoApi = $"https://api.bilibili.com/x/stein/edgeinfo_v2?graph_version={graphVersion}&bvid={bvid}";
                 var edgeInfoJson = await HTTPUtil.GetWebSourceAsync(edgeInfoApi);
                 using var edgeDoc = JsonDocument.Parse(edgeInfoJson);
-                var edgeInfoData = edgeDoc.RootElement.GetProperty("data");
-                var questions = edgeInfoData.GetProperty("edges").GetProperty("questions").EnumerateArray()
+                var edgeInfoData = edgeDoc.RootElement.GetPropertySafe("data");
+                var questions = edgeInfoData.GetPropertySafe("edges").EnumerateArraySafe("questions")
                     .ToList();
                 var index = 2; // 互动视频分P索引从2开始
                 foreach (var question in questions)
                 {
-                    var choices = question.GetProperty("choices").EnumerateArray().ToList();
+                    var choices = question.EnumerateArraySafe("choices").ToList();
                     foreach (var page in choices)
                     {
                         Page p = new(index++,
                             id,
-                            page.GetProperty("cid").ToString(),
+                            page.GetValueAsStringSafe("cid"),
                             "", //epid
-                            page.GetProperty("option").ToString().Trim(),
+                            page.GetValueAsStringSafe("option").Trim(),
                             0,
                             "",
                             pubTime, //分p视频没有发布时间

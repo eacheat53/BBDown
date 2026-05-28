@@ -24,11 +24,11 @@ public class FavListFetcher : IFetcher
         {
             var favListApi = $"https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid={mid}";
             using var favDoc = JsonDocument.Parse(await HTTPUtil.GetWebSourceAsync(favListApi));
-            var list = favDoc.RootElement.GetProperty("data").GetProperty("list").EnumerateArray();
+            var list = favDoc.RootElement.GetPropertySafe("data").EnumerateArraySafe("list");
             var firstFav = list.FirstOrDefault();
             if (firstFav.ValueKind == System.Text.Json.JsonValueKind.Undefined)
                 throw new InvalidOperationException("该用户没有创建收藏夹");
-            favId = firstFav.GetProperty("id").ToString();
+            favId = firstFav.GetValueAsStringSafe("id");
         }
 
         int pageSize = 20;
@@ -61,19 +61,19 @@ public class FavListFetcher : IFetcher
             //只处理视频类型(可以直接在query param上指定type=2)
             // if (m.GetProperty("type").GetInt32() != 2) continue;
             //只处理未失效视频
-            if (m.GetProperty("attr").GetInt32() != 0) continue;
+            if (m.GetInt32Safe("attr") != 0) continue;
 
-            var pageCount = m.GetProperty("page").GetInt32();
+            var pageCount = m.GetInt32Safe("page");
             if (pageCount > 1)
             {
-                var tmpInfo = await new NormalInfoFetcher().FetchAsync(m.GetProperty("id").ToString());
+                var tmpInfo = await new NormalInfoFetcher().FetchAsync(m.GetValueAsStringSafe("id"));
                 foreach (var item in tmpInfo.PagesInfo)
                 {
                     Page p = new(index++, item)
                     {
-                        title = m.GetProperty("title").ToString() + $"_P{item.index}_{item.title}",
+                        title = m.GetValueAsStringSafe("title") + $"_P{item.index}_{item.title}",
                         cover = tmpInfo.Pic,
-                        desc = m.GetProperty("intro").ToString()
+                        desc = m.GetValueAsStringSafe("intro")
                     };
                     if (!pagesInfo.Contains(p)) pagesInfo.Add(p);
                 }
@@ -81,17 +81,17 @@ public class FavListFetcher : IFetcher
             else
             {
                 Page p = new(index++,
-                    m.GetProperty("id").ToString(),
-                    m.GetProperty("ugc").GetProperty("first_cid").ToString(),
+                    m.GetValueAsStringSafe("id"),
+                    m.GetPropertySafe("ugc").GetValueAsStringSafe("first_cid"),
                     "", //epid
-                    m.GetProperty("title").ToString(),
-                    m.GetProperty("duration").GetInt32(),
+                    m.GetValueAsStringSafe("title"),
+                    m.GetInt32Safe("duration"),
                     "",
-                    m.GetProperty("pubtime").GetInt64(),
-                    m.GetProperty("cover").ToString(),
-                    m.GetProperty("intro").ToString(),
-                    m.GetProperty("upper").GetProperty("name").ToString(),
-                    m.GetProperty("upper").GetProperty("mid").ToString());
+                    m.GetInt64Safe("pubtime"),
+                    m.GetValueAsStringSafe("cover"),
+                    m.GetValueAsStringSafe("intro"),
+                    m.GetPropertySafe("upper").GetValueAsStringSafe("name"),
+                    m.GetPropertySafe("upper").GetValueAsStringSafe("mid"));
                 if (!pagesInfo.Contains(p)) pagesInfo.Add(p);
             }
         }

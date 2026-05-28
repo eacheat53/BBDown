@@ -121,7 +121,7 @@ public static partial class Parser
                     {
                         if (dashVideo.GetValueAsStringSafe("base_url") != "")
                         {
-                            var videoId = stream.GetProperty("stream_info").GetValueAsStringSafe("quality");
+                            var videoId = stream.GetPropertySafe("stream_info").GetValueAsStringSafe("quality");
                             var urlList = new List<string>() { dashVideo.GetValueAsStringSafe("base_url") };
                             urlList.AddRange(dashVideo.EnumerateArraySafe("backup_url").Select(i => i.ToString()));
                             Video v = new()
@@ -230,7 +230,7 @@ public static partial class Parser
             {
                 if (audio != null)
                 {
-                    if (!tvApi && root.GetProperty("dash").TryGetProperty("dolby", out JsonElement dolby))
+                    if (!tvApi && root.GetPropertySafe("dash").TryGetProperty("dolby", out JsonElement dolby))
                     {
                         if (dolby.TryGetProperty("audio", out JsonElement db))
                         {
@@ -247,7 +247,7 @@ public static partial class Parser
             {
                 if (audio != null)
                 {
-                    if (!tvApi && root.GetProperty("dash").TryGetProperty("flac", out JsonElement hiRes))
+                    if (!tvApi && root.GetPropertySafe("dash").TryGetProperty("flac", out JsonElement hiRes))
                     {
                         if (hiRes.TryGetProperty("audio", out JsonElement db))
                         {

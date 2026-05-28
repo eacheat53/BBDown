@@ -122,11 +122,11 @@ public static partial class UrlResolver
                 Regex regex = StateRegex();
                 string json = regex.Match(web).Groups[1].Value;
                 using var jDoc = JsonDocument.Parse(json);
-                var epList = jDoc.RootElement.GetProperty("epList").EnumerateArray();
+                var epList = jDoc.RootElement.EnumerateArraySafe("epList");
                 var firstEp = epList.FirstOrDefault();
                 if (firstEp.ValueKind == System.Text.Json.JsonValueKind.Undefined)
                     throw new InvalidOperationException("未找到任何分P信息");
-                string epId = firstEp.GetProperty("id").ToString();
+                string epId = firstEp.GetValueAsStringSafe("id");
                 avid = $"ep:{epId}";
             }
         }
@@ -209,11 +209,11 @@ public static partial class UrlResolver
         string api = $"https://api.bilibili.com/pugv/view/web/season?season_id={ssid}";
         string json = await HTTPUtil.GetWebSourceAsync(api);
         using var jDoc = JsonDocument.Parse(json);
-        var episodes = jDoc.RootElement.GetProperty("data").GetProperty("episodes").EnumerateArray();
+        var episodes = jDoc.RootElement.GetPropertySafe("data").EnumerateArraySafe("episodes");
         var firstEp = episodes.FirstOrDefault();
         if (firstEp.ValueKind == System.Text.Json.JsonValueKind.Undefined)
             throw new InvalidOperationException("未找到课程分P信息");
-        return firstEp.GetProperty("id").ToString();
+        return firstEp.GetValueAsStringSafe("id");
     }
 
     private static async Task<string> GetEpIdByBangumiSSIdAsync(string ssId)
@@ -221,11 +221,11 @@ public static partial class UrlResolver
         string api = $"https://{Core.Config.Current.EpHost}/pgc/view/web/season?season_id={ssId}";
         string json = await HTTPUtil.GetWebSourceAsync(api);
         using var jDoc = JsonDocument.Parse(json);
-        var episodes = jDoc.RootElement.GetProperty("result").GetProperty("episodes").EnumerateArray();
+        var episodes = jDoc.RootElement.GetPropertySafe("result").EnumerateArraySafe("episodes");
         var firstEp = episodes.FirstOrDefault();
         if (firstEp.ValueKind == System.Text.Json.JsonValueKind.Undefined)
             throw new InvalidOperationException("未找到番剧分P信息");
-        return firstEp.GetProperty("id").ToString();
+        return firstEp.GetValueAsStringSafe("id");
     }
 
     private static async Task<string> GetEpIdByMDAsync(string mdId)
@@ -233,7 +233,7 @@ public static partial class UrlResolver
         string api = $"https://api.bilibili.com/pgc/review/user?media_id={mdId}";
         string json = await HTTPUtil.GetWebSourceAsync(api);
         using var jDoc = JsonDocument.Parse(json);
-        return jDoc.RootElement.GetProperty("result").GetProperty("media").GetProperty("new_ep").GetProperty("id").ToString();
+        return jDoc.RootElement.GetPropertySafe("result").GetPropertySafe("media").GetPropertySafe("new_ep").GetValueAsStringSafe("id");
     }
 
     [GeneratedRegex("av(\\d+)")]

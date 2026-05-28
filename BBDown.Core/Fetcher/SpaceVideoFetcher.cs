@@ -12,7 +12,7 @@ public class SpaceVideoFetcher : IFetcher
         // using the live API can bypass w_rid
         string userInfoApi = $"https://api.live.bilibili.com/live_user/v1/Master/info?uid={id}";
         using var userDoc = JsonDocument.Parse(await HTTPUtil.GetWebSourceAsync(userInfoApi));
-        string userName = PathUtil.GetValidFileName(userDoc.RootElement.GetProperty("data").GetProperty("info").GetProperty("uname").ToString(), filterSlash: true);
+        string userName = PathUtil.GetValidFileName(userDoc.RootElement.GetPropertySafe("data").GetPropertySafe("info").GetValueAsStringSafe("uname"), filterSlash: true);
         List<string> urls = new();
         int pageSize = 50;
         int pageNumber = 1;
@@ -20,12 +20,12 @@ public class SpaceVideoFetcher : IFetcher
         api = $"https://api.bilibili.com/x/space/wbi/arc/search?{api}";
         string json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
-        var pages = infoJson.RootElement.GetProperty("data").GetProperty("list").GetProperty("vlist").EnumerateArray();
+        var pages = infoJson.RootElement.GetPropertySafe("data").GetPropertySafe("list").EnumerateArraySafe("vlist");
         foreach (var page in pages)
         {
-            urls.Add($"https://www.bilibili.com/video/av{page.GetProperty("aid")}");
+            urls.Add($"https://www.bilibili.com/video/av{page.GetValueAsStringSafe("aid")}");
         }
-        int totalCount = infoJson.RootElement.GetProperty("data").GetProperty("page").GetProperty("count").GetInt32();
+        int totalCount = infoJson.RootElement.GetPropertySafe("data").GetPropertySafe("page").GetInt32Safe("count");
         int totalPage = (int)Math.Ceiling((double)totalCount / pageSize);
         while (pageNumber < totalPage)
         {
@@ -49,10 +49,10 @@ pause");
         api = $"https://api.bilibili.com/x/space/wbi/arc/search?{api}";
         string json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
-        var pages = infoJson.RootElement.GetProperty("data").GetProperty("list").GetProperty("vlist").EnumerateArray();
+        var pages = infoJson.RootElement.GetPropertySafe("data").GetPropertySafe("list").EnumerateArraySafe("vlist");
         foreach (var page in pages)
         {
-            urls.Add($"https://www.bilibili.com/video/av{page.GetProperty("aid")}");
+            urls.Add($"https://www.bilibili.com/video/av{page.GetValueAsStringSafe("aid")}");
         }
         return urls;
     }
