@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using static BBDown.Core.Logger;
 
 using BBDown.Core.Util;
 using static BBDown.BBDownUtil;
@@ -16,7 +15,7 @@ internal partial class Program
         lock (fileLock)
         {
             string filePath = Path.Combine(APP_DIR, "BBDown.archives");
-            LogDebug("文件路径：{0}", filePath);
+            Logger.LogDebug("文件路径：{0}", filePath);
             File.AppendAllText(filePath, $"{aid}|");
         }
     }
@@ -27,7 +26,7 @@ internal partial class Program
         {
             string filePath = Path.Combine(APP_DIR, "BBDown.archives");
             if (!File.Exists(filePath)) return false;
-            LogDebug("文件路径：{0}", filePath);
+            Logger.LogDebug("文件路径：{0}", filePath);
             var text = File.ReadAllText(filePath);
             return text.Split('|').Any(item => item == aid);
         }

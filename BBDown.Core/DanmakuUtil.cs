@@ -1,4 +1,3 @@
-﻿using static BBDown.Core.Logger;
 using System.Text;
 using System.Xml;
 
@@ -37,7 +36,7 @@ public static class DanmakuUtil
             }
             catch (Exception ex) when (ex is XmlException or IOException)
             {
-                LogDebug("解析字幕xml时出现异常: {0}", ex.ToString());
+                Logger.LogDebug("解析字幕xml时出现异常: {0}", ex.ToString());
                 return null;
             }
         }
@@ -185,7 +184,7 @@ public static class DanmakuUtil
             }
             catch (Exception e) when (e is FormatException or OverflowException)
             {
-                LogDebug("弹幕时间解析失败: {0}", e.Message);
+                Logger.LogDebug("弹幕时间解析失败: {0}", e.Message);
             }
             FontSize = attrs[2];
             try
@@ -195,7 +194,7 @@ public static class DanmakuUtil
             }
             catch (FormatException e)
             {
-                Log(e.Message);
+                Logger.Log(e.Message);
             }
             Timestamp = attrs[4];
             Content = content;

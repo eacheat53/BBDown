@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.Core.Logger;
 using BBDown.Core.DRM;
 using BBDown.Core.Entity;
 using System.Diagnostics;
@@ -19,7 +18,7 @@ internal partial class Program
 {
     private static async Task DecryptDrmAsync(ParsedResult parsed, string videoPath, string audioPath, MyOption myOption)
     {
-        Log("检测到DRM加密，正在获取解密密钥...");
+        Logger.Log("检测到DRM加密，正在获取解密密钥...");
 
         parsed.KeyHex = myOption.DrmKeyHex ?? "";
         if (!string.IsNullOrEmpty(myOption.DrmKidHex))
@@ -27,7 +26,7 @@ internal partial class Program
 
         if (!string.IsNullOrEmpty(parsed.KeyHex) && !string.IsNullOrEmpty(parsed.KidHex))
         {
-            Log($"使用手动提供的密钥: KEY={parsed.KeyHex[..Math.Min(8, parsed.KeyHex.Length)]}...");
+            Logger.Log($"使用手动提供的密钥: KEY={parsed.KeyHex[..Math.Min(8, parsed.KeyHex.Length)]}...");
         }
         else
         {
@@ -51,67 +50,67 @@ internal partial class Program
                     }
                     else
                     {
-                        LogWarn("Widevine DRM 需要 device.wvd 文件，请放置到程序目录");
+                        Logger.LogWarn("Widevine DRM 需要 device.wvd 文件，请放置到程序目录");
                     }
                 }
             }
             else
             {
-                LogWarn("当前DRM类型不支持自动解密，请使用 --key --kid 手动提供密钥");
+                Logger.LogWarn("当前DRM类型不支持自动解密，请使用 --key --kid 手动提供密钥");
             }
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or FormatException)
         {
-            LogWarn($"自动密钥提取异常: {ex.Message}");
+            Logger.LogWarn($"自动密钥提取异常: {ex.Message}");
         }
 
         if (string.IsNullOrEmpty(parsed.KeyHex))
         {
-            LogWarn("============================================");
-            LogWarn("自动密钥提取失败，文件将保持加密状态。");
-            LogWarn("");
-            LogWarn("解决方案：");
-            LogWarn("  1. 确保 device.wvd 文件放置在程序目录下");
-            LogWarn($"  2. 或手动指定: BBDown <url> --key <KEY_HEX> --kid {parsed.KidHex}");
-            LogWarn("============================================");
+            Logger.LogWarn("============================================");
+            Logger.LogWarn("自动密钥提取失败，文件将保持加密状态。");
+            Logger.LogWarn("");
+            Logger.LogWarn("解决方案：");
+            Logger.LogWarn("  1. 确保 device.wvd 文件放置在程序目录下");
+            Logger.LogWarn($"  2. 或手动指定: BBDown <url> --key <KEY_HEX> --kid {parsed.KidHex}");
+            Logger.LogWarn("============================================");
             return;
         }
         }
 
-        Log($"密钥获取成功: KEY={parsed.KeyHex[..Math.Min(8, parsed.KeyHex.Length)]}...");
+        Logger.Log($"密钥获取成功: KEY={parsed.KeyHex[..Math.Min(8, parsed.KeyHex.Length)]}...");
 
         var mp4decrypt = !string.IsNullOrEmpty(myOption.Mp4decryptPath) && File.Exists(myOption.Mp4decryptPath)
             ? myOption.Mp4decryptPath
             : FindTool("mp4decrypt");
         if (string.IsNullOrEmpty(mp4decrypt))
         {
-            LogError("未找到 mp4decrypt，请安装 Bento4 或通过 --mp4decrypt-path 指定路径");
+            Logger.LogError("未找到 mp4decrypt，请安装 Bento4 或通过 --mp4decrypt-path 指定路径");
             return;
         }
 
         if (!string.IsNullOrEmpty(videoPath) && File.Exists(videoPath))
         {
-            Log("解密视频流...");
+            Logger.Log("解密视频流...");
             var tmpVideo = videoPath + ".dec";
             await RunDecryptAsync(mp4decrypt, parsed.KidHex, parsed.KeyHex, videoPath, tmpVideo);
             if (File.Exists(tmpVideo) && new FileInfo(tmpVideo).Length > 0)
             {
                 File.Delete(videoPath);
                 File.Move(tmpVideo, videoPath);
-                Log("视频解密完成");
+                Logger.Log("视频解密完成");
             }
         }
 
         if (!string.IsNullOrEmpty(audioPath) && File.Exists(audioPath))
         {
-            Log("解密音频流...");
+            Logger.Log("解密音频流...");
             var tmpAudio = audioPath + ".dec";
             await RunDecryptAsync(mp4decrypt, parsed.KidHex, parsed.KeyHex, audioPath, tmpAudio);
             if (File.Exists(tmpAudio) && new FileInfo(tmpAudio).Length > 0)
             {
                 File.Delete(audioPath);
                 File.Move(tmpAudio, audioPath);
-                Log("音频解密完成");
+                Logger.Log("音频解密完成");
             }
         }
     }
@@ -136,7 +135,7 @@ internal partial class Program
         if (proc.ExitCode != 0)
         {
             var err = await stderrTask;
-            LogError($"mp4decrypt failed: {err}");
+            Logger.LogError($"mp4decrypt failed: {err}");
         }
     }
 

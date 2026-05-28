@@ -5,7 +5,6 @@ using System.IO.Compression;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using static BBDown.Core.Util.HTTPUtil;
-using static BBDown.Core.Logger;
 
 namespace BBDown.Core;
 
@@ -60,13 +59,13 @@ static class AppHelper
                 : throw new ArgumentException($"{name} 必须是有效的数字 ID，当前值: '{value}'");
 
         var headers = GetHeader(appkey);
-        LogDebug("App-Req-Headers: {0}", JsonSerializer.Serialize(headers, JsonContext.Default.DictionaryStringString));
+        Logger.LogDebug("App-Req-Headers: {0}", JsonSerializer.Serialize(headers, JsonContext.Default.DictionaryStringString));
         byte[] data;
         // 只有pgc接口才有配音和片头尾信息
         if (bangumi)
         {
             if (!(string.IsNullOrEmpty(encoding) || encoding == "HEVC"))
-                LogWarn("APP的番剧不支持 HEVC 以外的编码");
+                Logger.LogWarn("APP的番剧不支持 HEVC 以外的编码");
             var body = GetPayload(ParseId(epId, nameof(epId)), ParseId(cid, nameof(cid)), ParseId(qn, nameof(qn)), PlayViewReq.Types.CodeType.Code265);
             data = await GetPostResponseAsync(API2, body, headers);
         }
@@ -77,7 +76,7 @@ static class AppHelper
         }
         var resp = new MessageParser<PlayViewReply>(() => new PlayViewReply()).ParseFrom(ReadMessage(data));
 
-        LogDebug("PlayViewReplyPlain: {0}", JsonSerializer.Serialize(resp, JsonContext.Default.PlayViewReply));
+        Logger.LogDebug("PlayViewReplyPlain: {0}", JsonSerializer.Serialize(resp, JsonContext.Default.PlayViewReply));
         return ConvertToDashJson(resp);
     }
 
@@ -225,7 +224,7 @@ static class AppHelper
             Download = 0, //0:播放 1:flv下载 2:dash下载
             ForceHost = 2 //0:允许使用ip 1:使用http 2:使用https
         };
-        LogDebug("PayLoadPlain: {0}", JsonSerializer.Serialize(obj, JsonContext.Default.PlayViewReq));
+        Logger.LogDebug("PayLoadPlain: {0}", JsonSerializer.Serialize(obj, JsonContext.Default.PlayViewReq));
         return PackMessage(obj.ToByteArray());
     }
 

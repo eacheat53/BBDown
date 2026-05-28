@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
-using static BBDown.Core.Logger;
 
 namespace BBDown.Core.Util;
 
@@ -21,7 +20,7 @@ public static class HTTPUtil
             {
                 RemoteCertificateValidationCallback = (_, _, _, _) => true,
             };
-            LogDebug("SSL 证书验证已禁用");
+            Logger.LogDebug("SSL 证书验证已禁用");
         }
         return new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(2) };
     }
@@ -65,11 +64,11 @@ public static class HTTPUtil
         webRequest.Headers.CacheControl = CacheControlHeaderValue.Parse("no-cache");
         webRequest.Headers.Connection.Clear();
 
-        LogDebug("获取网页内容: Url: {0}, Headers: {1}", url, webRequest.Headers);
+        Logger.LogDebug("获取网页内容: Url: {0}, Headers: {1}", url, webRequest.Headers);
         using var webResponse = (await AppHttpClient.SendAsync(webRequest, HttpCompletionOption.ResponseHeadersRead, token)).EnsureSuccessStatusCode();
 
         string htmlCode = await webResponse.Content.ReadAsStringAsync(token);
-        LogDebug("Response: {0}", htmlCode);
+        Logger.LogDebug("Response: {0}", htmlCode);
         return htmlCode;
     }
 
@@ -87,16 +86,16 @@ public static class HTTPUtil
                 webRequest.Headers.CacheControl = CacheControlHeaderValue.Parse("no-cache");
                 webRequest.Headers.Connection.Clear();
 
-                LogDebug("获取网页重定向地址(method={1}): Url: {0}", url, method);
+                Logger.LogDebug("获取网页重定向地址(method={1}): Url: {0}", url, method);
                 using var webResponse = (await AppHttpClient.SendAsync(webRequest, HttpCompletionOption.ResponseHeadersRead, token)).EnsureSuccessStatusCode();
                 string location = webResponse.RequestMessage?.RequestUri?.AbsoluteUri ?? url;
-                LogDebug("Location: {0}", location);
+                Logger.LogDebug("Location: {0}", location);
                 return location;
             }
             catch (HttpRequestException) when (method == HttpMethod.Head)
             {
                 // HEAD 不被支持，回退到 GET
-                LogDebug("HEAD 请求失败，尝试 GET");
+                Logger.LogDebug("HEAD 请求失败，尝试 GET");
             }
         }
         return url; // fallback: return original URL
@@ -104,7 +103,7 @@ public static class HTTPUtil
 
     public static async Task<byte[]> GetPostResponseAsync(string Url, byte[] postData, Dictionary<string, string>? headers = null, CancellationToken token = default)
     {
-        LogDebug("Post to: {0}, data: {1}", Url, Convert.ToBase64String(postData));
+        Logger.LogDebug("Post to: {0}, data: {1}", Url, Convert.ToBase64String(postData));
 
         using ByteArrayContent content = new(postData);
         content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/grpc");

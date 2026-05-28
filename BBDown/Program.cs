@@ -8,7 +8,6 @@ using static BBDown.Core.Entity.Entity;
 using static BBDown.BBDownUtil;
 using static BBDown.BBDownDownloadUtil;
 using static BBDown.Core.Parser;
-using static BBDown.Core.Logger;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -39,7 +38,7 @@ partial class Program
         }
         catch (Exception ex) when (ex is ArgumentOutOfRangeException or FormatException)
         {
-            LogError($"格式化日期出错: {ex.Message}");
+            Logger.LogError($"格式化日期出错: {ex.Message}");
             return ts.ToString();
         }
     }
@@ -50,7 +49,7 @@ partial class Program
 
     private static void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
     {
-        LogWarn("Force Exit...");
+        Logger.LogWarn("Force Exit...");
         try
         {
             Console.ResetColor();

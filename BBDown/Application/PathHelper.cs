@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.Core.Logger;
 using System.Text.RegularExpressions;
 
 using BBDown.Core.Util;

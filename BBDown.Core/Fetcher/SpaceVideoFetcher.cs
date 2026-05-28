@@ -1,7 +1,6 @@
 ﻿using BBDown.Core.Entity;
 using System.Text.Json;
 using static BBDown.Core.Util.HTTPUtil;
-using static BBDown.Core.Logger;
 using static BBDown.Core.Util.PathUtil;
 
 namespace BBDown.Core.Fetcher;
@@ -35,7 +34,7 @@ public class SpaceVideoFetcher : IFetcher
             urls.AddRange(await GetVideosByPageAsync(pageNumber, pageSize, id));
         }
         await File.WriteAllTextAsync($"{userName}的投稿视频.txt", string.Join(Environment.NewLine, urls));
-        Log("目前下载器不支持下载用户的全部投稿视频，不过程序已经获取到了该用户的全部投稿视频地址，你可以自行使用批处理脚本等手段调用本程序进行批量下载。如在Windows系统你可以使用如下代码：");
+        Logger.Log("目前下载器不支持下载用户的全部投稿视频，不过程序已经获取到了该用户的全部投稿视频地址，你可以自行使用批处理脚本等手段调用本程序进行批量下载。如在Windows系统你可以使用如下代码：");
         Console.WriteLine();
         Console.WriteLine(@"@echo Off
 For /F %%a in (urls.txt) Do (BBDown.exe ""%%a"")

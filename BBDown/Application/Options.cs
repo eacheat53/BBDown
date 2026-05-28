@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
 using static BBDown.BBDownUtil;
 using static BBDown.ExternalToolHelper;
-using static BBDown.Core.Logger;
 using System.Linq;
 using System.Text.RegularExpressions;
 using BBDown.Core;
@@ -22,46 +21,46 @@ internal partial class Program
     {
         if (myOption.AddDfnSuffix)
         {
-            LogWarn("--add-dfn-subfix 已被弃用, 建议使用 --file-pattern/-F 或 --multi-file-pattern/-M 来自定义输出文件名格式");
+            Logger.LogWarn("--add-dfn-subfix 已被弃用, 建议使用 --file-pattern/-F 或 --multi-file-pattern/-M 来自定义输出文件名格式");
             if (string.IsNullOrEmpty(myOption.FilePattern) && string.IsNullOrEmpty(myOption.MultiFilePattern))
             {
                 SinglePageDefaultSavePath += "[<dfn>]";
                 MultiPageDefaultSavePath += "[<dfn>]";
-                LogWarn($"已切换至 -F \"{SinglePageDefaultSavePath}\" -M \"{MultiPageDefaultSavePath}\"");
+                Logger.LogWarn($"已切换至 -F \"{SinglePageDefaultSavePath}\" -M \"{MultiPageDefaultSavePath}\"");
             }
         }
         if (myOption.Aria2cProxy != "")
         {
-            LogWarn("--aria2c-proxy 已被弃用, 请使用 --aria2c-args 来设置aria2c代理, 本次执行已添加该代理");
+            Logger.LogWarn("--aria2c-proxy 已被弃用, 请使用 --aria2c-args 来设置aria2c代理, 本次执行已添加该代理");
             myOption.Aria2cArgs += $" --all-proxy=\"{myOption.Aria2cProxy}\"";
         }
         if (myOption.OnlyHevc)
         {
-            LogWarn("--only-hevc/-hevc 已被弃用, 请使用 --encoding-priority 来设置编码优先级, 本次执行已将hevc设置为最高优先级");
+            Logger.LogWarn("--only-hevc/-hevc 已被弃用, 请使用 --encoding-priority 来设置编码优先级, 本次执行已将hevc设置为最高优先级");
             myOption.EncodingPriority = "hevc";
         }
         if (myOption.OnlyAvc)
         {
-            LogWarn("--only-avc/-avc 已被弃用, 请使用 --encoding-priority 来设置编码优先级, 本次执行已将avc设置为最高优先级");
+            Logger.LogWarn("--only-avc/-avc 已被弃用, 请使用 --encoding-priority 来设置编码优先级, 本次执行已将avc设置为最高优先级");
             myOption.EncodingPriority = "avc";
         }
         if (myOption.OnlyAv1)
         {
-            LogWarn("--only-av1/-av1 已被弃用, 请使用 --encoding-priority 来设置编码优先级, 本次执行已将av1设置为最高优先级");
+            Logger.LogWarn("--only-av1/-av1 已被弃用, 请使用 --encoding-priority 来设置编码优先级, 本次执行已将av1设置为最高优先级");
             myOption.EncodingPriority = "av1";
         }
         if (myOption.NoPaddingPageNum)
         {
-            LogWarn("--no-padding-page-num 已被弃用, 建议使用 --file-pattern/-F 或 --multi-file-pattern/-M 来自定义输出文件名格式");
+            Logger.LogWarn("--no-padding-page-num 已被弃用, 建议使用 --file-pattern/-F 或 --multi-file-pattern/-M 来自定义输出文件名格式");
             if (string.IsNullOrEmpty(myOption.FilePattern) && string.IsNullOrEmpty(myOption.MultiFilePattern))
             {
                 MultiPageDefaultSavePath = MultiPageDefaultSavePath.Replace("<pageNumberWithZero>", "<pageNumber>");
-                LogWarn($"已切换至 -M \"{MultiPageDefaultSavePath}\"");
+                Logger.LogWarn($"已切换至 -M \"{MultiPageDefaultSavePath}\"");
             }
         }
         if (myOption.BandwidthAscending)
         {
-            LogWarn("--bandwith-ascending 已被弃用, 建议使用 --video-ascending 与 --audio-ascending 来指定视频或音频是否升序, 本次执行已将视频与音频均设为升序");
+            Logger.LogWarn("--bandwith-ascending 已被弃用, 建议使用 --video-ascending 与 --audio-ascending 来指定视频或音频是否升序, 本次执行已将视频与音频均设为升序");
             myOption.VideoAscending = true;
             myOption.AudioAscending = true;
         }
@@ -104,7 +103,7 @@ internal partial class Program
         var formats = myOption.DownloadDanmakuFormats.Replace("，", ",").ToLowerInvariant().Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (formats.Any(format => !BBDownDanmakuFormatInfo.AllFormatNames.Contains(format)))
         {
-            LogError($"包含不支持的下载弹幕格式：{myOption.DownloadDanmakuFormats}");
+            Logger.LogError($"包含不支持的下载弹幕格式：{myOption.DownloadDanmakuFormats}");
             return BBDownDanmakuFormatInfo.DefaultFormats;
         }
         
@@ -230,7 +229,7 @@ internal partial class Program
             }
             //设置工作目录
             Environment.CurrentDirectory = dir;
-            LogDebug("切换工作目录至：{0}", dir);
+            Logger.LogDebug("切换工作目录至：{0}", dir);
         }
     }
 
@@ -245,20 +244,20 @@ internal partial class Program
 
         if (string.IsNullOrEmpty(cookie) && File.Exists(Path.Combine(APP_DIR, "BBDown.data")))
         {
-            Log("加载本地cookie...");
-            LogDebug("文件路径：{0}", Path.Combine(APP_DIR, "BBDown.data"));
+            Logger.Log("加载本地cookie...");
+            Logger.LogDebug("文件路径：{0}", Path.Combine(APP_DIR, "BBDown.data"));
             cookie = File.ReadAllText(Path.Combine(APP_DIR, "BBDown.data"));
         }
         if (string.IsNullOrEmpty(token) && File.Exists(Path.Combine(APP_DIR, "BBDownTV.data")) && myOption.UseTvApi)
         {
-            Log("加载本地token...");
-            LogDebug("文件路径：{0}", Path.Combine(APP_DIR, "BBDownTV.data"));
+            Logger.Log("加载本地token...");
+            Logger.LogDebug("文件路径：{0}", Path.Combine(APP_DIR, "BBDownTV.data"));
             token = File.ReadAllText(Path.Combine(APP_DIR, "BBDownTV.data")).Replace("access_token=", "");
         }
         if (string.IsNullOrEmpty(token) && File.Exists(Path.Combine(APP_DIR, "BBDownApp.data")) && myOption.UseAppApi)
         {
-            Log("加载本地token...");
-            LogDebug("文件路径：{0}", Path.Combine(APP_DIR, "BBDownApp.data"));
+            Logger.Log("加载本地token...");
+            Logger.LogDebug("文件路径：{0}", Path.Combine(APP_DIR, "BBDownApp.data"));
             token = File.ReadAllText(Path.Combine(APP_DIR, "BBDownApp.data")).Replace("access_token=", "");
         }
 

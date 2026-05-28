@@ -2,7 +2,6 @@
 using System.Text.Json;
 using static BBDown.Core.Entity.Entity;
 using static BBDown.Core.Util.HTTPUtil;
-using static BBDown.Core.Logger;
 
 namespace BBDown.Core.Fetcher;
 
@@ -31,7 +30,7 @@ public class MediaListFetcher : IFetcher
             }
             catch (Exception fallbackEx) when (fallbackEx is HttpRequestException or InvalidOperationException)
             {
-                LogDebug("MediaList fallback to SeriesList failed: {0}", fallbackEx.Message);
+                Logger.LogDebug("MediaList fallback to SeriesList failed: {0}", fallbackEx.Message);
                 var code = root.TryGetProperty("code", out var codeElem) && codeElem.ValueKind == JsonValueKind.Number
                     ? codeElem.GetInt32()
                     : 0;

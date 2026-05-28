@@ -1,11 +1,11 @@
-using System;
+﻿using System;
+using BBDown.Core;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using Spectre.Console.Cli;
-using static BBDown.Core.Logger;
 
 namespace BBDown;
 
@@ -25,7 +25,7 @@ internal static class BBDownConfigParser
         if (!File.Exists(configPath))
             return result;
 
-        Log($"加载配置文件: {configPath}");
+        Logger.Log($"加载配置文件: {configPath}");
 
         var configArgs = File.ReadAllLines(configPath)
             .Where(s => !string.IsNullOrWhiteSpace(s) && !s.TrimStart().StartsWith('#'))
@@ -87,7 +87,7 @@ internal static class BBDownConfigParser
             }
         }
 
-        LogDebug("新的命令行参数: " + string.Join(" ", result));
+        Logger.LogDebug("新的命令行参数: " + string.Join(" ", result));
         return result;
     }
 

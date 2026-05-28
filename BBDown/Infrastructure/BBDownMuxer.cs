@@ -6,7 +6,6 @@ using System.Text;
 using static BBDown.Core.Entity.Entity;
 using static BBDown.BBDownUtil;
 using static BBDown.Core.Util.SubUtil;
-using static BBDown.Core.Logger;
 using System.IO;
 using BBDown.Core;
 using System.Runtime.InteropServices;
@@ -30,12 +29,12 @@ static partial class BBDownMuxer
         p.ErrorDataReceived += (_, output) =>
         {
             if (!string.IsNullOrWhiteSpace(output.Data))
-                Log(output.Data);
+                Logger.Log(output.Data);
         };
         p.OutputDataReceived += (_, output) =>
         {
             if (!string.IsNullOrWhiteSpace(output.Data))
-                LogDebug(output.Data);
+                Logger.LogDebug(output.Data);
         };
         p.StartInfo.StandardErrorEncoding = Encoding.UTF8;
         p.StartInfo.StandardOutputEncoding = Encoding.UTF8;
@@ -107,7 +106,7 @@ static partial class BBDownMuxer
 
         //----分析完毕
         var arguments = (Config.Current.DebugLog ? " -v " : "") + inputArg + (metaArg.ToString() == "" ? "" : " -itags tool=" + metaArg) + $" -new -- \"{outPath}\"";
-        LogDebug("mp4box命令: {0}", arguments);
+        Logger.LogDebug("mp4box命令: {0}", arguments);
         return RunExe(MP4BOX, arguments);
     }
 
@@ -216,7 +215,7 @@ static partial class BBDownMuxer
 
         string arguments = argsBuilder.ToString();
 
-        LogDebug("ffmpeg命令: {0}", arguments);
+        Logger.LogDebug("ffmpeg命令: {0}", arguments);
         return RunExe(FFMPEG, arguments);
     }
 
@@ -233,7 +232,7 @@ static partial class BBDownMuxer
             {
                 var tmpFile = Path.Combine(Path.GetDirectoryName(file)!, Path.GetFileNameWithoutExtension(file) + ".ts");
                 var arguments = $"-loglevel warning -y -i \"{file}\" -map 0 -c copy -f mpegts -bsf:v h264_mp4toannexb \"{tmpFile}\"";
-                LogDebug("ffmpeg命令: {0}", arguments);
+                Logger.LogDebug("ffmpeg命令: {0}", arguments);
                 RunExe(FFMPEG, arguments);
                 File.Delete(file);
             }

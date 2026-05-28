@@ -3,7 +3,6 @@ using Google.Protobuf;
 using System.Text;
 using static BBDown.Core.Entity.Entity;
 using static BBDown.Core.Util.HTTPUtil;
-using static BBDown.Core.Logger;
 using System.Text.RegularExpressions;
 using System.Text.Json;
 
@@ -248,7 +247,7 @@ public static partial class SubUtil
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
-            LogDebug("GetIntlSubtitlesFromApi1 failed: {0}", ex.Message);
+            Logger.LogDebug("GetIntlSubtitlesFromApi1 failed: {0}", ex.Message);
             return null;
         }
     }
@@ -288,7 +287,7 @@ public static partial class SubUtil
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
-            LogDebug("GetIntlSubtitlesFromApi2 failed: {0}", ex.Message);
+            Logger.LogDebug("GetIntlSubtitlesFromApi2 failed: {0}", ex.Message);
             return null;
         }
     }
@@ -327,7 +326,7 @@ public static partial class SubUtil
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
-            LogDebug("GetSubtitlesFromApi1 failed: {0}", ex.Message);
+            Logger.LogDebug("GetSubtitlesFromApi1 failed: {0}", ex.Message);
             return null;
         }
     }
@@ -361,7 +360,7 @@ public static partial class SubUtil
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
-            LogDebug("GetSubtitlesFromApi2 failed: {0}", ex.Message);
+            Logger.LogDebug("GetSubtitlesFromApi2 failed: {0}", ex.Message);
             return null;
         }
     }
@@ -407,7 +406,7 @@ public static partial class SubUtil
         }
         catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or InvalidProtocolBufferException)
         {
-            LogDebug("GetSubtitlesFromApi3 failed: {0}", ex.Message);
+            Logger.LogDebug("GetSubtitlesFromApi3 failed: {0}", ex.Message);
             return null;
         }
     }

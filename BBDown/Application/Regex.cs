@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 
 using BBDown.Core.Util;
 using static BBDown.BBDownUtil;
-using static BBDown.Core.Logger;
 using System.Text.Json;
 using BBDown.Core;
 namespace BBDown;
