@@ -51,12 +51,18 @@ BBDown --help
 | `-F` | `--file-pattern` | 自定义单 P 文件名格式 |
 | `-M` | `--multi-file-pattern` | 自定义多 P 文件名格式 |
 | `-c` | `--cookie` | 设置 Cookie |
-| `--config-file` | 指定配置文件路径 |
+| | `--muxer-timeout` | 混流超时时长（分钟，默认 30） |
+| | `--retry-count` | 网络请求失败重试次数（默认 3） |
+| | `--retry-delay` | 重试间隔基础毫秒数（默认 3000） |
+| | `--thread-segment-size` | 多线程下载分片大小（MB，默认 20） |
+| | `--config-file` | 指定配置文件路径 |
 
 Commands:
 - `login` — APP 扫码登录 WEB 账号
 - `logintv` — APP 扫码登录 TV 账号
 - `serve` — 以 API 服务器模式运行
+  - `-l, --listen` — 监听地址（默认 `http://0.0.0.0:23333`）
+  - `--max-concurrent` — 最大并发下载数（默认 3）
 
 # 功能
 - [x] 番剧下载(Web|TV|App)
@@ -66,16 +72,20 @@ Commands:
 - [x] 多分P自动下载
 - [x] 选择指定分P进行下载
 - [x] 选择指定清晰度进行下载
-- [x] 下载外挂字幕并转换为srt格式
+- [x] 下载外挂字幕并转换为srt/ass格式
 - [x] 自动合并音频+视频流+字幕流+**章节信息**`(使用ffmpeg或mp4box)`
 - [x] 单独下载视频/音频/字幕
 - [x] 二维码登录账号
-- [x] 多线程下载
+- [x] 多线程下载（支持自定义分片大小）
 - [x] 支持调用aria2c下载
 - [x] 支持AVC/HEVC/AV1编码
 - [x] **支持8K/HDR/杜比视界/杜比全景声下载**
 - [x] **Widevine DRM 解密 (原生C#实现, 无需 Python)**
 - [x] 自定义存储文件名
+- [x] **API 服务器模式**（`BBDown serve`，支持并发限制与文件日志）
+- [x] **配置文件支持**（`BBDown.config`）
+- [x] **Ctrl+C 下载中断**（CancellationToken 全链路贯通）
+- [x] **.tmp 断点续传**（崩溃后自动识别已下载的临时文件）
 
 # TODO
 

@@ -4,13 +4,32 @@
 
 ## [未发布]
 
+### 新增
+
+- API 服务器并发数自定义：`BBDown serve --max-concurrent <n>`
+- CLI 自定义参数：
+  - `--muxer-timeout <分钟>` — 混流超时（默认 30）
+  - `--retry-count <n>` — 网络请求重试次数（默认 3）
+  - `--retry-delay <毫秒>` — 重试间隔基数（默认 3000）
+  - `--thread-segment-size <MB>` — 多线程下载分片大小（默认 20）
+- Cookie 过期检测与明确提示（区分"未登录"vs"Cookie 已过期"）
+- 下载链路 `CancellationToken` 贯通（CLI Ctrl+C / API 请求取消）
+- `.tmp` 文件断点续传支持（完整临时文件自动移动，写入增量校验修复）
+- API 服务器文件日志（`bbdown-api.log`）
+- `JsonElementExtensions` 安全 JSON 访问器（10 个扩展方法）
+- 单元测试骨架：`BBDown.Tests`（`BilibiliBvConverterTests` / `UrlResolverTests` / `FormatHelperTests`）
+- 核心方法拆分：`UrlResolver.cs` / `ExternalToolHelper.cs`
+
 ### 变更
 
 - 升级依赖：QRCoder 1.6.0 → 1.8.0
 - 升级依赖：Google.Protobuf 3.28.3 → 3.34.1
 - 升级依赖：Grpc.Tools 2.67.0 → 2.80.0
 - 迁移 CLI 框架：System.CommandLine（已归档）→ Spectre.Console.Cli 0.55.0
+- `Config` 全局状态重构：`AppSettings` record + 线程安全读写锁
+- `HttpClient` 连接池刷新：`SocketsHttpHandler.PooledConnectionLifetime = 5min`
 - 规范化 API 文档文件名：`json-api-doc.md` → `API.md`
+- 重试策略精细化：指数退避 + 不可重试异常短路（`ArgumentException` / `InvalidOperationException` / `NotSupportedException`）
 
 ### 修复
 
@@ -26,6 +45,12 @@
 - `SpaceVideoFetcher` 中 `GetValidFileName` 与 `BBDownUtil` 的重复实现合并到 `BBDown.Core.Util.PathUtil`
 - `Path.GetDirectoryName` 返回 null 时的安全防护
 - `AppHelper.DoReqAsync` 参数未校验直接 `Convert.ToInt64`
+- 文化敏感字符串操作（`ToLower()` → `ToLowerInvariant()`）防止土耳其 locale bug
+- 多处 `JsonDocument` / `HttpResponseMessage` 资源泄漏
+- `BBDownDownloadUtil` 进度回调中除零风险防护
+- FFmpeg/MP4Box 混流死锁（消费 stdout 防止缓冲区满）
+- 并发下载目标文件碰撞（按路径 `SemaphoreSlim` 排他锁）
+- API 服务器错误信息泄露（默认隐藏 `ErrorMessage`，仅 debug 模式暴露详情）
 
 ## [1.6.3] - 2025-05-06
 

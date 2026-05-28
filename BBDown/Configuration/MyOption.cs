@@ -1,8 +1,10 @@
 using Spectre.Console.Cli;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 namespace BBDown;
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicConstructors)]
 public class MyOption : CommandSettings
 {
     [CommandArgument(0, "<URL>")]
