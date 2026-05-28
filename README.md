@@ -94,18 +94,14 @@ Commands:
 - [x] 支持更多自定义选项（`--muxer-timeout` / `--retry-count` / `--retry-delay` / `--thread-segment-size`）
 - [x] 零测试覆盖 → 单元测试骨架（`BBDown.Tests` + `BilibiliBvConverterTests` / `UrlResolverTests` / `FormatHelperTests`）
 - [x] 拆分下载/解析核心方法（`UrlResolver.cs` / `ExternalToolHelper.cs`）
+- [x] API 并发数自定义（`--max-concurrent` 选项暴露 API 服务器并发限制）
+- [x] Cookie 过期检测与明确提示（区分 "未登录" vs "Cookie 已过期"）
 
 ## 待完成 🔴
 
 - [ ] **JSON 解析统一错误包装**
   - 现状：`JsonElementExtensions` 已建立，`NormalInfoFetcher` / `FavListFetcher` 已应用，其余 ~170 处调用待逐步迁移
   - 影响：无上下文信息，难定位问题字段
-
-- [ ] **自动刷新 cookie**
-  - 现状：cookie 过期后需手动重新 `BBDown login`
-
-- [ ] **API 并发数自定义**
-  - 现状：`SemaphoreSlim(3)` 硬编码，未暴露为 CLI 参数
 
 # 使用教程
 
