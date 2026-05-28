@@ -1,11 +1,13 @@
 using Spectre.Console.Cli;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace BBDown.Commands;
 
-public class LoginTVCommand : Command<CommandSettings>
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+public class LoginTVCommand : Command<LoginSettings>
 {
-    protected override int Execute(CommandContext context, CommandSettings settings, CancellationToken cancellationToken)
+    protected override int Execute(CommandContext context, LoginSettings settings, CancellationToken cancellationToken)
     {
         BBDownLoginUtil.LoginTV().GetAwaiter().GetResult();
         return 0;

@@ -1,11 +1,18 @@
 using Spectre.Console.Cli;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace BBDown.Commands;
 
-public class LoginCommand : Command<CommandSettings>
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicProperties)]
+public class LoginSettings : CommandSettings
 {
-    protected override int Execute(CommandContext context, CommandSettings settings, CancellationToken cancellationToken)
+}
+
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
+public class LoginCommand : Command<LoginSettings>
+{
+    protected override int Execute(CommandContext context, LoginSettings settings, CancellationToken cancellationToken)
     {
         BBDownLoginUtil.LoginWEB().GetAwaiter().GetResult();
         return 0;
