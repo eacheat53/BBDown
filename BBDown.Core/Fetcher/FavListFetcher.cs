@@ -38,22 +38,22 @@ public class FavListFetcher : IFetcher
         var api = $"https://api.bilibili.com/x/v3/fav/resource/list?media_id={favId}&pn=1&ps={pageSize}&order=mtime&type=2&tid=0&platform=web";
         var json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
-        var data = infoJson.RootElement.GetProperty("data");
-        int totalCount = data.GetProperty("info").GetProperty("media_count").GetInt32();
+        var data = infoJson.RootElement.GetPropertySafe("data");
+        int totalCount = data.GetPropertySafe("info").GetPropertySafe("media_count").GetInt32();
         int totalPage = (int)Math.Ceiling((double)totalCount / pageSize);
-        var title = data.GetProperty("info").GetProperty("title").GetString()!;
-        var intro = data.GetProperty("info").GetProperty("intro").GetString()!;
-        long pubTime = data.GetProperty("info").GetProperty("ctime").GetInt64();
-        var userName = data.GetProperty("info").GetProperty("upper").GetProperty("name").ToString();
-        var medias = data.GetProperty("medias").EnumerateArray().ToList();
+        var title = data.GetPropertySafe("info").GetPropertySafe("title").GetString()!;
+        var intro = data.GetPropertySafe("info").GetPropertySafe("intro").GetString()!;
+        long pubTime = data.GetPropertySafe("info").GetPropertySafe("ctime").GetInt64();
+        var userName = data.GetPropertySafe("info").GetPropertySafe("upper").GetPropertySafe("name").ToString();
+        var medias = data.GetPropertySafe("medias").EnumerateArray().ToList();
 
         for (int page = 2; page <= totalPage; page++)
         {
             api = $"https://api.bilibili.com/x/v3/fav/resource/list?media_id={favId}&pn={page}&ps={pageSize}&order=mtime&type=2&tid=0&platform=web";
             json = await HTTPUtil.GetWebSourceAsync(api);
             using var jsonDoc = JsonDocument.Parse(json);
-            data = jsonDoc.RootElement.GetProperty("data");
-            medias.AddRange(data.GetProperty("medias").EnumerateArray().ToList());
+            data = jsonDoc.RootElement.GetPropertySafe("data");
+            medias.AddRange(data.GetPropertySafe("medias").EnumerateArray().ToList());
         }
 
         foreach (var m in medias)

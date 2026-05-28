@@ -58,6 +58,24 @@ public static class JsonElementExtensions
         return prop;
     }
 
+    public static string GetValueAsStringSafe(this JsonElement element, string propertyName, string defaultValue = "")
+    {
+        if (element.ValueKind != JsonValueKind.Object)
+            return defaultValue;
+        if (!element.TryGetProperty(propertyName, out var prop))
+            return defaultValue;
+        return prop.ValueKind == JsonValueKind.Null || prop.ValueKind == JsonValueKind.Undefined ? defaultValue : prop.ToString();
+    }
+
+    public static IEnumerable<JsonElement> EnumerateArraySafe(this JsonElement element, string propertyName)
+    {
+        if (element.ValueKind != JsonValueKind.Object)
+            return Enumerable.Empty<JsonElement>();
+        if (!element.TryGetProperty(propertyName, out var prop) || prop.ValueKind != JsonValueKind.Array)
+            return Enumerable.Empty<JsonElement>();
+        return prop.EnumerateArray();
+    }
+
     public static JsonElement? TryGetPropertySafe(this JsonElement element, string propertyName)
     {
         if (element.ValueKind != JsonValueKind.Object)
