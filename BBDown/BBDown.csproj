@@ -9,6 +9,8 @@
     <PackageProjectUrl>https://github.com/AliverAnme/BBDown</PackageProjectUrl>
     <StartupObject></StartupObject>
     <PackAsTool>true</PackAsTool>
+    <IsPackable>true</IsPackable>
+    <EnableStaticWebAssets>false</EnableStaticWebAssets>
     <ToolCommandName>BBDown</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <Nullable>enable</Nullable>
