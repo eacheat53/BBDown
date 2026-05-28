@@ -8,7 +8,6 @@ using static BBDown.Core.Entity.Entity;
 using static BBDown.BBDownUtil;
 using static BBDown.ExternalToolHelper;
 using static BBDown.BBDownDownloadUtil;
-using static BBDown.Core.Parser;
 using BBDown.Core;
 using BBDown.Core.Entity;
 using System.Text.Json;
@@ -149,7 +148,7 @@ internal partial class Program
             }
 
             //调用解析
-            ParsedResult parsedResult = await ExtractTracksAsync(aidOri, p.aid, p.cid, p.epid, myOption.UseTvApi, myOption.UseIntlApi, myOption.UseAppApi, firstEncoding!, myOption.DecryptDrm);
+            ParsedResult parsedResult = await Parser.ExtractTracksAsync(aidOri, p.aid, p.cid, p.epid, myOption.UseTvApi, myOption.UseIntlApi, myOption.UseAppApi, firstEncoding!, myOption.DecryptDrm);
             List<AudioMaterial> audioMaterial = [];
             if (!p.points.Any())
             {
@@ -410,7 +409,7 @@ internal partial class Program
                     if (vIndex > dfns.Count || vIndex < 0) vIndex = 0;
                     Console.ResetColor();
                     //重新解析
-                    parsedResult = await ExtractTracksAsync(aidOri, p.aid, p.cid, p.epid, myOption.UseTvApi, myOption.UseIntlApi, myOption.UseAppApi, firstEncoding!, myOption.DecryptDrm, dfns[vIndex]);
+                    parsedResult = await Parser.ExtractTracksAsync(aidOri, p.aid, p.cid, p.epid, myOption.UseTvApi, myOption.UseIntlApi, myOption.UseAppApi, firstEncoding!, myOption.DecryptDrm, dfns[vIndex]);
                     if (!p.points.Any()) p.points = parsedResult.ExtraPoints;
                     selected = true;
                     vIndex = 0; // 重新解析后第一个轨道即为所选清晰度

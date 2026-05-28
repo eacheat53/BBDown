@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
 using static BBDown.BBDownUtil;
 using static BBDown.BBDownDownloadUtil;
-using static BBDown.Core.Parser;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
