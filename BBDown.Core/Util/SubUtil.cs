@@ -1,9 +1,8 @@
 ﻿using BBDown.Core.Protobuf;
+using BBDown.Core.Util;
 using Google.Protobuf;
 using System.Text;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.Core.Util.HTTPUtil;
-using static BBDown.Core.Logger;
 using System.Text.RegularExpressions;
 using System.Text.Json;
 
@@ -224,7 +223,7 @@ public static partial class SubUtil
         {
             List<Subtitle> subtitles = new();
             string api = "https://" + (Config.Current.EpHost == "api.bilibili.com" ? "api.biliintl.com" : Config.Current.EpHost) + $"/intl/gateway/web/v2/subtitle?episode_id={epId}";
-            string json = await GetWebSourceAsync(api);
+            string json = await HTTPUtil.GetWebSourceAsync(api);
             using var infoJson = JsonDocument.Parse(json);
             var subs = infoJson.RootElement.GetProperty("data").GetProperty("subtitles").EnumerateArray();
             foreach (var sub in subs)
@@ -248,7 +247,7 @@ public static partial class SubUtil
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
-            LogDebug("GetIntlSubtitlesFromApi1 failed: {0}", ex.Message);
+            Logger.LogDebug("GetIntlSubtitlesFromApi1 failed: {0}", ex.Message);
             return null;
         }
     }
@@ -260,7 +259,7 @@ public static partial class SubUtil
             List<Subtitle> subtitles = new();
             string api = "https://" + (Config.Current.Host == "api.bilibili.com" ? "api.bilibili.tv" : Config.Current.Host) +
                          $"/intl/gateway/v2/ogv/view/app/season?ep_id={epId}&platform=android&s_locale=zh_SG" + (Config.Current.Token != "" ? $"&access_key={Config.Current.Token}" : "");
-            string json = await GetWebSourceAsync(api);
+            string json = await HTTPUtil.GetWebSourceAsync(api);
             using var infoJson = JsonDocument.Parse(json);
             var modules = infoJson.RootElement.GetProperty("result").GetProperty("modules");
             if (modules.GetArrayLength() == 0) return null;
@@ -288,7 +287,7 @@ public static partial class SubUtil
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
-            LogDebug("GetIntlSubtitlesFromApi2 failed: {0}", ex.Message);
+            Logger.LogDebug("GetIntlSubtitlesFromApi2 failed: {0}", ex.Message);
             return null;
         }
     }
@@ -299,7 +298,7 @@ public static partial class SubUtil
         {
             List<Subtitle> subtitles = new();
             string api = $"https://api.bilibili.com/x/web-interface/view?aid={aid}&cid={cid}";
-            string json = await GetWebSourceAsync(api);
+            string json = await HTTPUtil.GetWebSourceAsync(api);
             using var infoJson = JsonDocument.Parse(json);
             var subs = infoJson.RootElement.GetProperty("data").GetProperty("subtitle").GetProperty("list").EnumerateArray();
             foreach (var sub in subs)
@@ -327,7 +326,7 @@ public static partial class SubUtil
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
-            LogDebug("GetSubtitlesFromApi1 failed: {0}", ex.Message);
+            Logger.LogDebug("GetSubtitlesFromApi1 failed: {0}", ex.Message);
             return null;
         }
     }
@@ -338,7 +337,7 @@ public static partial class SubUtil
         {
             List<Subtitle> subtitles = new();
             string api = $"https://api.bilibili.com/x/player/wbi/v2?cid={cid}&aid={aid}";
-            string json = await GetWebSourceAsync(api);
+            string json = await HTTPUtil.GetWebSourceAsync(api);
             using var infoJson = JsonDocument.Parse(json);
             var subs = infoJson.RootElement.GetProperty("data").GetProperty("subtitle").GetProperty("subtitles").EnumerateArray();
             foreach (var sub in subs)
@@ -361,7 +360,7 @@ public static partial class SubUtil
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
-            LogDebug("GetSubtitlesFromApi2 failed: {0}", ex.Message);
+            Logger.LogDebug("GetSubtitlesFromApi2 failed: {0}", ex.Message);
             return null;
         }
     }
@@ -388,7 +387,7 @@ public static partial class SubUtil
 
             var data = GetPayload(Convert.ToInt64(aid), Convert.ToInt64(cid));
 
-            var t = AppHelper.ReadMessage(await GetPostResponseAsync(api, data));
+            var t = AppHelper.ReadMessage(await HTTPUtil.GetPostResponseAsync(api, data));
             var resp = new MessageParser<DmViewReply>(() => new DmViewReply()).ParseFrom(t);
 
             if (resp.Subtitle != null && resp.Subtitle.Subtitles != null)
@@ -407,7 +406,7 @@ public static partial class SubUtil
         }
         catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or InvalidProtocolBufferException)
         {
-            LogDebug("GetSubtitlesFromApi3 failed: {0}", ex.Message);
+            Logger.LogDebug("GetSubtitlesFromApi3 failed: {0}", ex.Message);
             return null;
         }
     }
@@ -453,9 +452,9 @@ public static partial class SubUtil
     public static async Task SaveSubtitleAsync(string url, string path)
     {
         if (path.EndsWith(".srt"))
-            await File.WriteAllTextAsync(path, ConvertSubFromJson(await GetWebSourceAsync(url)), Encoding.UTF8);
+            await File.WriteAllTextAsync(path, ConvertSubFromJson(await HTTPUtil.GetWebSourceAsync(url)), Encoding.UTF8);
         else
-            await File.WriteAllTextAsync(path, await GetWebSourceAsync(url), Encoding.UTF8);
+            await File.WriteAllTextAsync(path, await HTTPUtil.GetWebSourceAsync(url), Encoding.UTF8);
     }
 
     private static string ConvertSubFromJson(string jsonString)

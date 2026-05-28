@@ -1,8 +1,6 @@
 ﻿using BBDown.Core.Entity;
+using BBDown.Core.Util;
 using System.Text.Json;
-using static BBDown.Core.Util.HTTPUtil;
-using static BBDown.Core.Logger;
-using static BBDown.Core.Util.PathUtil;
 
 namespace BBDown.Core.Fetcher;
 
@@ -13,14 +11,14 @@ public class SpaceVideoFetcher : IFetcher
         id = id[4..];
         // using the live API can bypass w_rid
         string userInfoApi = $"https://api.live.bilibili.com/live_user/v1/Master/info?uid={id}";
-        using var userDoc = JsonDocument.Parse(await GetWebSourceAsync(userInfoApi));
-        string userName = GetValidFileName(userDoc.RootElement.GetProperty("data").GetProperty("info").GetProperty("uname").ToString(), filterSlash: true);
+        using var userDoc = JsonDocument.Parse(await HTTPUtil.GetWebSourceAsync(userInfoApi));
+        string userName = PathUtil.GetValidFileName(userDoc.RootElement.GetProperty("data").GetProperty("info").GetProperty("uname").ToString(), filterSlash: true);
         List<string> urls = new();
         int pageSize = 50;
         int pageNumber = 1;
         var api = Parser.WbiSign($"mid={id}&order=pubdate&pn={pageNumber}&ps={pageSize}&tid=0&wts={DateTimeOffset.Now.ToUnixTimeSeconds().ToString()}");
         api = $"https://api.bilibili.com/x/space/wbi/arc/search?{api}";
-        string json = await GetWebSourceAsync(api);
+        string json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
         var pages = infoJson.RootElement.GetProperty("data").GetProperty("list").GetProperty("vlist").EnumerateArray();
         foreach (var page in pages)
@@ -35,7 +33,7 @@ public class SpaceVideoFetcher : IFetcher
             urls.AddRange(await GetVideosByPageAsync(pageNumber, pageSize, id));
         }
         await File.WriteAllTextAsync($"{userName}的投稿视频.txt", string.Join(Environment.NewLine, urls));
-        Log("目前下载器不支持下载用户的全部投稿视频，不过程序已经获取到了该用户的全部投稿视频地址，你可以自行使用批处理脚本等手段调用本程序进行批量下载。如在Windows系统你可以使用如下代码：");
+        Logger.Log("目前下载器不支持下载用户的全部投稿视频，不过程序已经获取到了该用户的全部投稿视频地址，你可以自行使用批处理脚本等手段调用本程序进行批量下载。如在Windows系统你可以使用如下代码：");
         Console.WriteLine();
         Console.WriteLine(@"@echo Off
 For /F %%a in (urls.txt) Do (BBDown.exe ""%%a"")
@@ -49,7 +47,7 @@ pause");
         List<string> urls = new();
         var api = Parser.WbiSign($"mid={mid}&order=pubdate&pn={pageNumber}&ps={pageSize}&tid=0&wts={DateTimeOffset.Now.ToUnixTimeSeconds().ToString()}");
         api = $"https://api.bilibili.com/x/space/wbi/arc/search?{api}";
-        string json = await GetWebSourceAsync(api);
+        string json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
         var pages = infoJson.RootElement.GetProperty("data").GetProperty("list").GetProperty("vlist").EnumerateArray();
         foreach (var page in pages)

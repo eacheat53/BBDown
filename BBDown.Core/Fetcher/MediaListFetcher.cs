@@ -1,8 +1,7 @@
 ﻿using BBDown.Core.Entity;
+using BBDown.Core.Util;
 using System.Text.Json;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.Core.Util.HTTPUtil;
-using static BBDown.Core.Logger;
 
 namespace BBDown.Core.Fetcher;
 
@@ -17,7 +16,7 @@ public class MediaListFetcher : IFetcher
     {
         id = id[10..];
         var api = $"https://api.bilibili.com/x/v1/medialist/info?type=8&biz_id={id}&tid=0";
-        var json = await GetWebSourceAsync(api);
+        var json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
         var root = infoJson.RootElement;
         var data = root.GetProperty("data");
@@ -31,7 +30,7 @@ public class MediaListFetcher : IFetcher
             }
             catch (Exception fallbackEx) when (fallbackEx is HttpRequestException or InvalidOperationException)
             {
-                LogDebug("MediaList fallback to SeriesList failed: {0}", fallbackEx.Message);
+                Logger.LogDebug("MediaList fallback to SeriesList failed: {0}", fallbackEx.Message);
                 var code = root.TryGetProperty("code", out var codeElem) && codeElem.ValueKind == JsonValueKind.Number
                     ? codeElem.GetInt32()
                     : 0;
@@ -52,7 +51,7 @@ public class MediaListFetcher : IFetcher
         while (hasMore)
         {
             var listApi = $"https://api.bilibili.com/x/v2/medialist/resource/list?type=8&oid={oid}&otype=2&biz_id={id}&with_current=true&mobi_app=web&ps=20&direction=false&sort_field=1&tid=0&desc=false";
-            json = await GetWebSourceAsync(listApi);
+            json = await HTTPUtil.GetWebSourceAsync(listApi);
             using var listJson = JsonDocument.Parse(json);
             var listRoot = listJson.RootElement;
             data = listRoot.GetProperty("data");

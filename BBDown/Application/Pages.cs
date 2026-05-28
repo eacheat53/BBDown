@@ -1,9 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.BBDownUtil;
-using static BBDown.Core.Logger;
 using System.Text.RegularExpressions;
 using BBDown.Core.Entity;
 
@@ -26,12 +24,12 @@ internal partial class Program
             if (!string.IsNullOrEmpty(vInfo.Index))
             {
                 selectedPages = [vInfo.Index];
-                Log("程序已自动选择你输入的集数, 如果要下载其他集数请自行指定分P(如可使用-p ALL代表全部)");
+                Logger.Log("程序已自动选择你输入的集数, 如果要下载其他集数请自行指定分P(如可使用-p ALL代表全部)");
             }
-            else if (!string.IsNullOrEmpty(GetQueryString("p", input)))
+            else if (!string.IsNullOrEmpty(BBDownUtil.GetQueryString("p", input)))
             {
-                selectedPages = [GetQueryString("p", input)];
-                Log("程序已自动选择你输入的集数, 如果要下载其他集数请自行指定分P(如可使用-p ALL代表全部)");
+                selectedPages = [BBDownUtil.GetQueryString("p", input)];
+                Logger.Log("程序已自动选择你输入的集数, 如果要下载其他集数请自行指定分P(如可使用-p ALL代表全部)");
             }
         }
         else if (selectPage != "ALL")
@@ -65,7 +63,7 @@ internal partial class Program
                     }
                 }
             }
-            catch { LogError("解析分P参数时失败了~"); selectedPages = null; };
+            catch { Logger.LogError("解析分P参数时失败了~"); selectedPages = null; };
         }
 
         return selectedPages;
@@ -87,12 +85,12 @@ internal partial class Program
                 var pcdnReg = PcdnRegex();
                 if (selectedVideo != null && pcdnReg.IsMatch(selectedVideo.baseUrl))
                 {
-                    LogWarn($"检测到视频流为PCDN, 尝试强制替换为{BACKUP_HOST}……");
+                    Logger.LogWarn($"检测到视频流为PCDN, 尝试强制替换为{BACKUP_HOST}……");
                     selectedVideo.baseUrl = pcdnReg.Replace(selectedVideo.baseUrl, $"://{BACKUP_HOST}/");
                 }
                 if (selectedAudio != null && pcdnReg.IsMatch(selectedAudio.baseUrl))
                 {
-                    LogWarn($"检测到音频流为PCDN, 尝试强制替换为{BACKUP_HOST}……");
+                    Logger.LogWarn($"检测到音频流为PCDN, 尝试强制替换为{BACKUP_HOST}……");
                     selectedAudio.baseUrl = pcdnReg.Replace(selectedAudio.baseUrl, $"://{BACKUP_HOST}/");
                 }
             }
@@ -100,12 +98,12 @@ internal partial class Program
             var akamReg = AkamRegex();
             if (selectedVideo != null && Config.Current.Area != "" && selectedVideo.baseUrl.Contains("akamaized.net"))
             {
-                LogWarn($"检测到视频流为外国源, 尝试强制替换为{BACKUP_HOST}……");
+                Logger.LogWarn($"检测到视频流为外国源, 尝试强制替换为{BACKUP_HOST}……");
                 selectedVideo.baseUrl = akamReg.Replace(selectedVideo.baseUrl, $"://{BACKUP_HOST}/");
             }
             if (selectedAudio != null && Config.Current.Area != "" && selectedAudio.baseUrl.Contains("akamaized.net"))
             {
-                LogWarn($"检测到音频流为外国源, 尝试强制替换为{BACKUP_HOST}……");
+                Logger.LogWarn($"检测到音频流为外国源, 尝试强制替换为{BACKUP_HOST}……");
                 selectedAudio.baseUrl = akamReg.Replace(selectedAudio.baseUrl, $"://{BACKUP_HOST}/");
             }
         }
@@ -113,12 +111,12 @@ internal partial class Program
         {
             if (selectedVideo != null)
             {
-                LogWarn($"尝试将视频流强制替换为{myOption.UposHost}……");
+                Logger.LogWarn($"尝试将视频流强制替换为{myOption.UposHost}……");
                 selectedVideo.baseUrl = UposRegex().Replace(selectedVideo.baseUrl, $"://{myOption.UposHost}/");
             }
             if (selectedAudio != null)
             {
-                LogWarn($"尝试将音频流强制替换为{myOption.UposHost}……");
+                Logger.LogWarn($"尝试将音频流强制替换为{myOption.UposHost}……");
                 selectedAudio.baseUrl = UposRegex().Replace(selectedAudio.baseUrl, $"://{myOption.UposHost}/");
             }
         }

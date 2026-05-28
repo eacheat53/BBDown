@@ -1,8 +1,8 @@
 ﻿using BBDown.Core.Entity;
+using BBDown.Core.Util;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.Core.Util.HTTPUtil;
 
 namespace BBDown.Core.Fetcher;
 
@@ -15,7 +15,7 @@ public partial class IntlBangumiInfoFetcher : IFetcher
         //string api = $"https://api.global.bilibili.com/intl/gateway/ogv/m/view?ep_id={id}";
         string api = "https://" + (Config.Current.Host == "api.bilibili.com" ? "api.bilibili.tv" : Config.Current.Host) +
                      $"/intl/gateway/v2/ogv/view/app/season?ep_id={id}&platform=android&s_locale=zh_SG&mobi_app=bstar_a" + (Config.Current.Token != "" ? $"&access_key={Config.Current.Token}" : "");
-        string json = (await GetWebSourceAsync(api)).Replace("\\/", "/");
+        string json = (await HTTPUtil.GetWebSourceAsync(api)).Replace("\\/", "/");
         using var infoJson = JsonDocument.Parse(json);
         if (!infoJson.RootElement.TryGetProperty("result", out var result))
             throw new KeyNotFoundException("Intl Bangumi API response missing 'result' node");
@@ -28,7 +28,7 @@ public partial class IntlBangumiInfoFetcher : IFetcher
         if (cover == "")
         {
             string animeUrl = $"https://bangumi.bilibili.com/anime/{seasonId}";
-            var web = await GetWebSourceAsync(animeUrl);
+            var web = await HTTPUtil.GetWebSourceAsync(animeUrl);
             if (web != "")
             {
                 Regex regex = StateRegex();

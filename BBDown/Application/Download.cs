@@ -1,15 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Linq;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.BBDownUtil;
-using static BBDown.ExternalToolHelper;
-using static BBDown.BBDownDownloadUtil;
-using static BBDown.Core.Parser;
-using static BBDown.Core.Logger;
 using BBDown.Core;
 using BBDown.Core.Entity;
 using System.Text.Json;
@@ -28,7 +23,7 @@ internal partial class Program
         //获取已选择的分P列表
         List<string>? selectedPages = GetSelectedPages(myOption, vInfo, input);
 
-        Log($"共计 {pagesInfo.Count} 个分P, 已选择：" + (selectedPages == null ? "ALL" : string.Join(",", selectedPages)));
+        Logger.Log($"共计 {pagesInfo.Count} 个分P, 已选择：" + (selectedPages == null ? "ALL" : string.Join(",", selectedPages)));
         var pagesCount = pagesInfo.Count;
 
         //过滤不需要的分P
@@ -49,17 +44,17 @@ internal partial class Program
         {
             if (pagesInfo.Count > 1 && delay > 0)
             {
-                Log($"停顿{delay}秒...");
+                Logger.Log($"停顿{delay}秒...");
                 await Task.Delay(delay * 1000);
             }
-            Log($"开始解析P{p.index}: {p.aid}... ({pagesInfo.IndexOf(p) + 1} of {pagesInfo.Count})");
+            Logger.Log($"开始解析P{p.index}: {p.aid}... ({pagesInfo.IndexOf(p) + 1} of {pagesInfo.Count})");
 
             if (myOption.SaveArchivesToFile)
             {
                 if (CheckAidFromFile(p.aid))
                 {
 
-                    Log($"aid: {p.aid}已下载过, 跳过下载...");
+                    Logger.Log($"aid: {p.aid}已下载过, 跳过下载...");
                     continue;
                 }
             }
@@ -73,7 +68,7 @@ internal partial class Program
             }
         }
 
-        Log("任务完成");
+        Logger.Log("任务完成");
     }
 
     private static async Task DownloadPageAsync(Page p, MyOption myOption, VInfo vInfo, List<Page> selectedPagesInfo, Dictionary<string, byte> encodingPriority, Dictionary<string, int> dfnPriority,
@@ -92,8 +87,8 @@ internal partial class Program
         {
         try
         {
-            LogDebug("尝试获取章节信息...");
-            p.points = await FetchPointsAsync(p.cid, p.aid);
+            Logger.LogDebug("尝试获取章节信息...");
+            p.points = await BBDownUtil.FetchPointsAsync(p.cid, p.aid);
 
             string videoPath = $"{p.aid}/{p.aid}.P{p.index}.{p.cid}.mp4";
             string audioPath = $"{p.aid}/{p.aid}.P{p.index}.{p.cid}.m4a";
@@ -113,22 +108,22 @@ internal partial class Program
                 }
                 if (!myOption.SkipCover && !myOption.SubOnly && !File.Exists(coverPath) && !myOption.DanmakuOnly && !myOption.CoverOnly)
                 {
-                    await DownloadFileAsync(pic == "" ? p.cover! : pic, coverPath, new DownloadConfig());
+                    await BBDownDownloadUtil.DownloadFileAsync(pic == "" ? p.cover! : pic, coverPath, new BBDownDownloadUtil.DownloadConfig());
                 }
 
                 if (!myOption.SkipSubtitle && !myOption.DanmakuOnly && !myOption.CoverOnly)
                 {
-                    LogDebug("获取字幕...");
+                    Logger.LogDebug("获取字幕...");
                     subtitleInfo = await SubUtil.GetSubtitlesAsync(p.aid, p.cid, p.epid, p.index, myOption.UseIntlApi);
                     if (myOption.SkipAi && subtitleInfo.Any())
                     {
-                        Log($"跳过下载AI字幕");
+                        Logger.Log($"跳过下载AI字幕");
                         subtitleInfo = subtitleInfo.Where(s => !s.lan.StartsWith("ai-")).ToList();
                     }
                     foreach (Subtitle s in subtitleInfo)
                     {
-                        Log($"下载字幕 {s.lan} => {SubUtil.GetSubtitleCode(s.lan).Item2}...");
-                        LogDebug("下载：{0}", s.url);
+                        Logger.Log($"下载字幕 {s.lan} => {SubUtil.GetSubtitleCode(s.lan).Item2}...");
+                        Logger.LogDebug("下载：{0}", s.url);
                         await SubUtil.SaveSubtitleAsync(s.url, s.path);
                         if (myOption.SubOnly && File.Exists(s.path) && File.ReadAllText(s.path) != "")
                         {
@@ -150,7 +145,7 @@ internal partial class Program
             }
 
             //调用解析
-            ParsedResult parsedResult = await ExtractTracksAsync(aidOri, p.aid, p.cid, p.epid, myOption.UseTvApi, myOption.UseIntlApi, myOption.UseAppApi, firstEncoding!, myOption.DecryptDrm);
+            ParsedResult parsedResult = await Parser.ExtractTracksAsync(aidOri, p.aid, p.cid, p.epid, myOption.UseTvApi, myOption.UseIntlApi, myOption.UseAppApi, firstEncoding!, myOption.DecryptDrm);
             List<AudioMaterial> audioMaterial = [];
             if (!p.points.Any())
             {
@@ -169,7 +164,7 @@ internal partial class Program
 
             var savePath = "";
 
-            var downloadConfig = new DownloadConfig()
+            var downloadConfig = new BBDownDownloadUtil.DownloadConfig()
             {
                 UseAria2c = myOption.UseAria2c,
                 Aria2cArgs = myOption.Aria2cArgs,
@@ -183,12 +178,12 @@ internal partial class Program
             {
                 if (parsedResult.VideoTracks.Count == 0)
                 {
-                    LogWarn("没有找到符合要求的视频流");
+                    Logger.LogWarn("没有找到符合要求的视频流");
                     if (myOption.VideoOnly) return;
                 }
                 if (parsedResult.AudioTracks.Count == 0)
                 {
-                    LogWarn("没有找到符合要求的音频流");
+                    Logger.LogWarn("没有找到符合要求的音频流");
                     if (myOption.AudioOnly) return;
                 }
 
@@ -238,31 +233,31 @@ internal partial class Program
                 Audio? selectedAudio = parsedResult.AudioTracks.ElementAtOrDefault(aIndex);
                 Audio? selectedBackgroundAudio = parsedResult.BackgroundAudioTracks.ElementAtOrDefault(aIndex);
 
-                LogDebug("Format Before: " + savePathFormat);
+                Logger.LogDebug("Format Before: " + savePathFormat);
                 savePath = FormatSavePath(savePathFormat, title, selectedVideo, selectedAudio, p, pagesCount, apiType, pubTime);
-                LogDebug("Format After: " + savePath);
+                Logger.LogDebug("Format After: " + savePath);
 
                 if (downloadDanmaku)
                 {
                     var danmakuXmlPath = Path.ChangeExtension(savePath, ".xml");
                     var danmakuAssPath = Path.ChangeExtension(savePath, ".ass");
-                    Log("正在下载弹幕Xml文件");
+                    Logger.Log("正在下载弹幕Xml文件");
                     var danmakuUrl = $"https://comment.bilibili.com/{p.cid}.xml";
-                    await DownloadFileAsync(danmakuUrl, danmakuXmlPath, downloadConfig);
+                    await BBDownDownloadUtil.DownloadFileAsync(danmakuUrl, danmakuXmlPath, downloadConfig);
                     var danmakus = DanmakuUtil.ParseXml(danmakuXmlPath);
                     if (danmakus == null)
                     {
-                        Log("弹幕Xml解析失败, 删除Xml...");
+                        Logger.Log("弹幕Xml解析失败, 删除Xml...");
                         File.Delete(danmakuXmlPath);
                     }
                     else if (danmakus.Length == 0)
                     {
-                        Log("当前视频没有弹幕, 删除Xml...");
+                        Logger.Log("当前视频没有弹幕, 删除Xml...");
                         File.Delete(danmakuXmlPath);
                     }
                     else if (downloadDanmakuFormats.Contains(BBDownDanmakuFormat.Ass))
                     {
-                        Log("正在保存弹幕Ass文件...");
+                        Logger.Log("正在保存弹幕Ass文件...");
                         await DanmakuUtil.SaveAsAssAsync(danmakus, danmakuAssPath);
                     }
 
@@ -286,12 +281,12 @@ internal partial class Program
                 {
                     var coverUrl = pic == "" ? p.cover! : pic;
                     var newCoverPath = Path.ChangeExtension(savePath, Path.GetExtension(coverUrl));
-                    await DownloadFileAsync(coverUrl, newCoverPath, downloadConfig);
+                    await BBDownDownloadUtil.DownloadFileAsync(coverUrl, newCoverPath, downloadConfig);
                     if (Directory.Exists(p.aid) && Directory.GetFiles(p.aid).Length == 0) Directory.Delete(p.aid, true);
                     relatedTask?.SavePaths.Add(newCoverPath);
                 }
 
-                Log($"已选择的流:");
+                Logger.Log($"已选择的流:");
                 PrintSelectedTrackInfo(selectedVideo, selectedAudio, p.dur);
 
                 //用户开启了强制替换
@@ -305,7 +300,7 @@ internal partial class Program
 
                 if (!myOption.OnlyShowInfo && File.Exists(savePath) && new FileInfo(savePath).Length != 0)
                 {
-                    Log($"{savePath}已存在, 跳过下载...");
+                    Logger.Log($"{savePath}已存在, 跳过下载...");
                     relatedTask?.SavePaths.Add(savePath);
                     File.Delete(coverPath);
                     if (Directory.Exists(p.aid) && Directory.GetFiles(p.aid).Length == 0)
@@ -318,25 +313,25 @@ internal partial class Program
                 if (selectedVideo != null)
                 {
                     //杜比视界, 若ffmpeg版本小于5.0, 使用mp4box封装
-                    if (selectedVideo.dfn == AppSettings.QualityMap["126"] && !myOption.UseMP4box && !CheckFFmpegDOVI())
+                    if (selectedVideo.dfn == AppSettings.QualityMap["126"] && !myOption.UseMP4box && !ExternalToolHelper.CheckFFmpegDOVI())
                     {
-                        LogWarn($"检测到杜比视界清晰度且您的ffmpeg版本小于5.0,将使用mp4box混流...");
+                        Logger.LogWarn($"检测到杜比视界清晰度且您的ffmpeg版本小于5.0,将使用mp4box混流...");
                         myOption.UseMP4box = true;
                     }
-                    Log($"开始下载P{p.index}视频...");
+                    Logger.Log($"开始下载P{p.index}视频...");
                     await DownloadTrackAsync(selectedVideo.baseUrl, videoPath, downloadConfig, video: true);
                 }
 
                 if (selectedAudio != null)
                 {
-                    Log($"开始下载P{p.index}音频...");
+                    Logger.Log($"开始下载P{p.index}音频...");
                     await DownloadTrackAsync(selectedAudio.baseUrl, audioPath, downloadConfig, video: false);
                 }
 
                 if (selectedBackgroundAudio != null)
                 {
                     var backgroundPath = $"{p.aid}/{p.aid}.{p.cid}.P{p.index}.back_ground.m4a";
-                    Log($"开始下载P{p.index}背景配音...");
+                    Logger.Log($"开始下载P{p.index}背景配音...");
                     await DownloadTrackAsync(selectedBackgroundAudio.baseUrl, backgroundPath, downloadConfig, video: false);
                     audioMaterial.Add(new AudioMaterial("背景音频", "", backgroundPath));
                 }
@@ -345,13 +340,13 @@ internal partial class Program
                 {
                     foreach (var role in parsedResult.RoleAudioList)
                     {
-                        Log($"开始下载P{p.index}配音[{role.title}]...");
+                        Logger.Log($"开始下载P{p.index}配音[{role.title}]...");
                         await DownloadTrackAsync(role.audio[aIndex].baseUrl, role.path, downloadConfig, video: false);
                         audioMaterial.Add(new AudioMaterial(role));
                     }
                 }
 
-                Log($"下载P{p.index}完毕");
+                Logger.Log($"下载P{p.index}完毕");
 
                 if (parsedResult.IsDrm && myOption.DecryptDrm && (!string.IsNullOrEmpty(parsedResult.KidHex) || !string.IsNullOrEmpty(parsedResult.PsshBase64)))
                 {
@@ -361,7 +356,7 @@ internal partial class Program
                 if (!parsedResult.VideoTracks.Any()) videoPath = "";
                 if (!parsedResult.AudioTracks.Any()) audioPath = "";
                 if (myOption.SkipMux) return;
-                Log($"开始合并音视频{(subtitleInfo.Any() ? "和字幕" : "")}...");
+                Logger.Log($"开始合并音视频{(subtitleInfo.Any() ? "和字幕" : "")}...");
                 if (myOption.AudioOnly)
                     savePath = savePath[..^4] + ".m4a";
 
@@ -376,9 +371,9 @@ internal partial class Program
                     subtitleInfo, myOption.AudioOnly, myOption.VideoOnly, p.points, p.pubTime, myOption.SimplyMux, isHevc);
                 if (code != 0 || !File.Exists(savePath) || new FileInfo(savePath).Length == 0)
                 {
-                    LogError("合并失败"); return;
+                    Logger.LogError("合并失败"); return;
                 }
-                Log("清理临时文件...");
+                Logger.Log("清理临时文件...");
                 await Task.Delay(200);
                 if (parsedResult.VideoTracks.Any()) File.Delete(videoPath);
                 if (parsedResult.AudioTracks.Any()) File.Delete(audioPath);
@@ -393,8 +388,8 @@ internal partial class Program
             {
                 if (myOption.DecryptDrm)
                 {
-                    LogError("此视频需要大会员登录才能获取完整DRM内容。");
-                    LogError($"请先运行: BBDown login  或使用 --cookie 参数");
+                    Logger.LogError("此视频需要大会员登录才能获取完整DRM内容。");
+                    Logger.LogError($"请先运行: BBDown login  或使用 --cookie 参数");
                     return;
                 }
                 var clips = parsedResult.Clips;
@@ -404,14 +399,14 @@ internal partial class Program
                 if (myOption.Interactive && !selected)
                 {
                     int i = 0;
-                    dfns.ForEach(key => LogColor($"{i++}.{AppSettings.QualityMap[key]}"));
-                    Log("请选择最想要的清晰度(输入序号): ", false);
+                    dfns.ForEach(key => Logger.LogColor($"{i++}.{AppSettings.QualityMap[key]}"));
+                    Logger.Log("请选择最想要的清晰度(输入序号): ", false);
                     Console.ForegroundColor = ConsoleColor.Cyan;
                     vIndex = ReadIntSafe();
                     if (vIndex > dfns.Count || vIndex < 0) vIndex = 0;
                     Console.ResetColor();
                     //重新解析
-                    parsedResult = await ExtractTracksAsync(aidOri, p.aid, p.cid, p.epid, myOption.UseTvApi, myOption.UseIntlApi, myOption.UseAppApi, firstEncoding!, myOption.DecryptDrm, dfns[vIndex]);
+                    parsedResult = await Parser.ExtractTracksAsync(aidOri, p.aid, p.cid, p.epid, myOption.UseTvApi, myOption.UseIntlApi, myOption.UseAppApi, firstEncoding!, myOption.DecryptDrm, dfns[vIndex]);
                     if (!p.points.Any()) p.points = parsedResult.ExtraPoints;
                     selected = true;
                     vIndex = 0; // 重新解析后第一个轨道即为所选清晰度
@@ -419,12 +414,12 @@ internal partial class Program
                 //排序
                 parsedResult.VideoTracks = SortTracks(parsedResult.VideoTracks, dfnPriority, encodingPriority, myOption.VideoAscending);
 
-                Log($"共计{parsedResult.VideoTracks.Count}条流(共有{clips.Count}个分段).");
+                Logger.Log($"共计{parsedResult.VideoTracks.Count}条流(共有{clips.Count}个分段).");
                 int index = 0;
                 foreach (var v in parsedResult.VideoTracks)
                 {
                     var kbps = v.dur > 0 ? v.size / 1024 / v.dur * 8 : 0;
-                    LogColor($"{index++}. [{v.dfn}] [{v.res}] [{v.codecs}] [{v.fps}] [~{kbps:00} kbps] [{FormatFileSize(v.size)}]".Replace("[] ", ""), false);
+                    Logger.LogColor($"{index++}. [{v.dfn}] [{v.res}] [{v.codecs}] [{v.fps}] [~{kbps:00} kbps] [{BBDownUtil.FormatFileSize(v.size)}]".Replace("[] ", ""), false);
                     if (myOption.OnlyShowInfo)
                     {
                         clips.ForEach(Console.WriteLine);
@@ -434,7 +429,7 @@ internal partial class Program
                 savePath = FormatSavePath(savePathFormat, title, parsedResult.VideoTracks.ElementAtOrDefault(vIndex), null, p, pagesCount, apiType, pubTime);
                 if (File.Exists(savePath) && new FileInfo(savePath).Length != 0)
                 {
-                    Log($"{savePath}已存在, 跳过下载...");
+                    Logger.Log($"{savePath}已存在, 跳过下载...");
                     relatedTask?.SavePaths.Add(savePath);
                     if (selectedPagesInfo.Count == 1 && Directory.Exists(p.aid))
                     {
@@ -447,16 +442,16 @@ internal partial class Program
                 {
                     var link = clips[i];
                     videoPath = $"{p.aid}/{p.aid}.P{p.index}.{p.cid}.{i.ToString(pad)}.mp4";
-                    Log($"开始下载P{p.index}视频, 片段({(i + 1).ToString(pad)}/{clips.Count})...");
+                    Logger.Log($"开始下载P{p.index}视频, 片段({(i + 1).ToString(pad)}/{clips.Count})...");
                     await DownloadTrackAsync(link, videoPath, downloadConfig, video: true);
                 }
-                Log($"下载P{p.index}完毕");
-                Log("开始合并分段...");
-                var files = GetFiles(Path.GetDirectoryName(videoPath)!, ".mp4");
+                Logger.Log($"下载P{p.index}完毕");
+                Logger.Log("开始合并分段...");
+                var files = BBDownUtil.GetFiles(Path.GetDirectoryName(videoPath)!, ".mp4");
                 videoPath = $"{p.aid}/{p.aid}.P{p.index}.{p.cid}.mp4";
                 BBDownMuxer.MergeFLV(files, videoPath);
                 if (myOption.SkipMux) return;
-                Log($"开始混流视频{(subtitleInfo.Any() ? "和字幕" : "")}...");
+                Logger.Log($"开始混流视频{(subtitleInfo.Any() ? "和字幕" : "")}...");
                 if (myOption.AudioOnly)
                     savePath = savePath[..^4] + ".m4a";
                 int code = BBDownMuxer.MuxAV(false, p.bvid, videoPath, "", audioMaterial, savePath,
@@ -469,9 +464,9 @@ internal partial class Program
                     subtitleInfo, myOption.AudioOnly, myOption.VideoOnly, p.points, p.pubTime, myOption.SimplyMux);
                 if (code != 0 || !File.Exists(savePath) || new FileInfo(savePath).Length == 0)
                 {
-                    LogError("合并失败"); return;
+                    Logger.LogError("合并失败"); return;
                 }
-                Log("清理临时文件...");
+                Logger.Log("清理临时文件...");
                 await Task.Delay(200);
                 if (parsedResult.VideoTracks.Count != 0) File.Delete(videoPath);
                 foreach (var s in subtitleInfo) File.Delete(s.path);
@@ -485,18 +480,18 @@ internal partial class Program
             {
                 if (myOption.DecryptDrm)
                 {
-                    LogError("此视频需要大会员登录才能获取完整DRM内容。");
-                    LogError("请先运行: BBDown login  或使用 --cookie 参数");
+                    Logger.LogError("此视频需要大会员登录才能获取完整DRM内容。");
+                    Logger.LogError("请先运行: BBDown login  或使用 --cookie 参数");
                 }
                 else
                 {
-                    LogError("解析此分P失败(建议--debug查看详细信息)");
+                    Logger.LogError("解析此分P失败(建议--debug查看详细信息)");
                 }
                 if (parsedResult.WebJsonString.Length < 100)
                 {
-                    LogError(parsedResult.WebJsonString);
+                    Logger.LogError(parsedResult.WebJsonString);
                 }
-                LogDebug("{0}", parsedResult.WebJsonString);
+                Logger.LogDebug("{0}", parsedResult.WebJsonString);
             }
 
             if (!string.IsNullOrWhiteSpace(savePath)) {
@@ -508,8 +503,8 @@ internal partial class Program
         {
             retryCount++;
             if (retryCount >= 3) throw;
-            LogError(ex.Message);
-            LogWarn("下载出现异常, 3秒后将进行自动重试...");
+            Logger.LogError(ex.Message);
+            Logger.LogWarn("下载出现异常, 3秒后将进行自动重试...");
             await Task.Delay(3000);
         }
         }

@@ -1,8 +1,8 @@
-using System;
+﻿using System;
+using BBDown.Core;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using static BBDown.Core.Logger;
 
 namespace BBDown;
 
@@ -36,7 +36,7 @@ public static class ExternalToolHelper
         }
         catch (Exception ex) when (ex is IOException or InvalidOperationException or FormatException)
         {
-            LogDebug("检测ffmpeg版本失败: {0}", ex.Message);
+            Logger.LogDebug("检测ffmpeg版本失败: {0}", ex.Message);
         }
         return false;
     }

@@ -1,4 +1,6 @@
-using System;
+﻿using System;
+using BBDown.Core.Util;
+using BBDown.Core;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -11,8 +13,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.Core.Logger;
-using static BBDown.Core.Util.HTTPUtil;
 
 namespace BBDown;
 
@@ -24,17 +24,17 @@ public static partial class BBDownUtil
         {
             var ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!;
             string nowVer = $"{ver.Major}.{ver.Minor}.{ver.Build}";
-            string redirectUrl = await GetWebLocationAsync("https://github.com/AliverAnme/BBDown/releases/latest");
+            string redirectUrl = await HTTPUtil.GetWebLocationAsync("https://github.com/AliverAnme/BBDown/releases/latest");
             string latestVer = redirectUrl.Replace("https://github.com/AliverAnme/BBDown/releases/tag/", "");
             if (nowVer != latestVer && !latestVer.StartsWith("https"))
             {
                 Console.Title = $"发现新版本：{latestVer}";
-                LogColor($"发现新版本：{latestVer}");
+                Logger.LogColor($"发现新版本：{latestVer}");
             }
         }
         catch (Exception ex) when (ex is HttpRequestException)
         {
-            LogDebug("检查更新失败: {0}", ex.Message);
+            Logger.LogDebug("检查更新失败: {0}", ex.Message);
         }
     }
     public static Task<string> GetAvIdAsync(string input) => UrlResolver.ResolveAsync(input);
@@ -230,7 +230,7 @@ public static partial class BBDownUtil
         try
         {
             string api = $"https://api.bilibili.com/x/player/wbi/v2?cid={cid}&aid={aid}";
-            string json = await GetWebSourceAsync(api);
+            string json = await HTTPUtil.GetWebSourceAsync(api);
             using var infoJson = JsonDocument.Parse(json);
             if (infoJson.RootElement.GetProperty("data").TryGetProperty("view_points", out JsonElement vPoint))
             {
@@ -247,7 +247,7 @@ public static partial class BBDownUtil
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
-            LogDebug("获取章节信息失败: {0}", ex.Message);
+            Logger.LogDebug("获取章节信息失败: {0}", ex.Message);
         }
         return points;
     }
@@ -319,18 +319,18 @@ public static partial class BBDownUtil
         try
         {
             var api = "https://api.bilibili.com/x/web-interface/nav";
-            var source = await GetWebSourceAsync(api);
+            var source = await HTTPUtil.GetWebSourceAsync(api);
             using var navDoc = JsonDocument.Parse(source);
             var json = navDoc.RootElement;
             var is_login = json.GetProperty("data").GetProperty("isLogin").GetBoolean();
             var wbi_img = json.GetProperty("data").GetProperty("wbi_img");
             Core.Config.WBI = GetMixinKey(RSubString(wbi_img.GetProperty("img_url").GetString()!) + RSubString(wbi_img.GetProperty("sub_url").GetString()!));
-            LogDebug("wbi: {0}", Core.Config.WBI);
+            Logger.LogDebug("wbi: {0}", Core.Config.WBI);
             return is_login;
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
-            LogDebug("检测登录状态失败: {0}", ex.Message);
+            Logger.LogDebug("检测登录状态失败: {0}", ex.Message);
             return false;
         }
     }

@@ -1,12 +1,10 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.Core.Logger;
 using System.Text.RegularExpressions;
 
 using BBDown.Core.Util;
-using static BBDown.BBDownUtil;
 using System.Text.Json;
 using BBDown.Core;
 namespace BBDown;
@@ -36,14 +34,14 @@ internal partial class Program
 
             var v = key switch
             {
-                "videoTitle" => GetValidFileName(title, filterSlash: true).Trim().TrimEnd('.').Trim(),
+                "videoTitle" => BBDownUtil.GetValidFileName(title, filterSlash: true).Trim().TrimEnd('.').Trim(),
                 "pageNumber" => p.index.ToString(),
                 "pageNumberWithZero" => p.index.ToString().PadLeft(pagesCount.ToString().Length, '0'),
-                "pageTitle" => GetValidFileName(p.title, filterSlash: true).Trim().TrimEnd('.').Trim(),
+                "pageTitle" => BBDownUtil.GetValidFileName(p.title, filterSlash: true).Trim().TrimEnd('.').Trim(),
                 "bvid" => p.bvid,
                 "aid" => p.aid,
                 "cid" => p.cid,
-                "ownerName" => p.ownerName == null ? "" : GetValidFileName(p.ownerName, filterSlash: true).Trim().TrimEnd('.').Trim(),
+                "ownerName" => p.ownerName == null ? "" : BBDownUtil.GetValidFileName(p.ownerName, filterSlash: true).Trim().TrimEnd('.').Trim(),
                 "ownerMid" => p.ownerMid ?? "",
                 "dfn" => videoTrack == null ? "" : videoTrack.dfn,
                 "res" => videoTrack == null ? "" : videoTrack.res,

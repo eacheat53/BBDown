@@ -1,14 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.BBDownUtil;
-using static BBDown.Core.Logger;
 using System.Linq;
 using BBDown.Core;
 using BBDown.Core.Entity;
-using static BBDown.BBDownDownloadUtil;
 
 using BBDown.Core.Util;
 using System.Text.Json;
@@ -20,42 +17,42 @@ internal partial class Program
     {
         if (parsedResult.BackgroundAudioTracks.Any() && parsedResult.RoleAudioList.Any())
         {
-            Log($"共计{parsedResult.BackgroundAudioTracks.Count}条背景音频流.");
+            Logger.Log($"共计{parsedResult.BackgroundAudioTracks.Count}条背景音频流.");
             int index = 0;
             foreach (var a in parsedResult.BackgroundAudioTracks)
             {
                 int pDur = pageDur == 0 ? a.dur : pageDur;
-                LogColor($"{index++}. [{a.codecs}] [{a.bandwidth} kbps] [~{FormatFileSize(pDur * a.bandwidth * 1024 / 8)}]", false);
+                Logger.LogColor($"{index++}. [{a.codecs}] [{a.bandwidth} kbps] [~{BBDownUtil.FormatFileSize(pDur * a.bandwidth * 1024 / 8)}]", false);
             }
-            Log($"共计{parsedResult.RoleAudioList.Count}条配音, 每条包含{parsedResult.RoleAudioList[0].audio.Count}条配音流.");
+            Logger.Log($"共计{parsedResult.RoleAudioList.Count}条配音, 每条包含{parsedResult.RoleAudioList[0].audio.Count}条配音流.");
             index = 0;
             foreach (var a in parsedResult.RoleAudioList[0].audio)
             {
                 int pDur = pageDur == 0 ? a.dur : pageDur;
-                LogColor($"{index++}. [{a.codecs}] [{a.bandwidth} kbps] [~{FormatFileSize(pDur * a.bandwidth * 1024 / 8)}]", false);
+                Logger.LogColor($"{index++}. [{a.codecs}] [{a.bandwidth} kbps] [~{BBDownUtil.FormatFileSize(pDur * a.bandwidth * 1024 / 8)}]", false);
             }
         }
         //展示所有的音视频流信息
         if (parsedResult.VideoTracks.Any())
         {
-            Log($"共计{parsedResult.VideoTracks.Count}条视频流.");
+            Logger.Log($"共计{parsedResult.VideoTracks.Count}条视频流.");
             int index = 0;
             foreach (var v in parsedResult.VideoTracks)
             {
                 int pDur = pageDur == 0 ? v.dur : pageDur;
                 var size = v.size > 0 ? v.size : pDur * v.bandwidth * 1024 / 8;
-                LogColor($"{index++}. [{v.dfn}] [{v.res}] [{v.codecs}] [{v.fps}] [{v.bandwidth} kbps] [~{FormatFileSize(size)}]".Replace("[] ", ""), false);
+                Logger.LogColor($"{index++}. [{v.dfn}] [{v.res}] [{v.codecs}] [{v.fps}] [{v.bandwidth} kbps] [~{BBDownUtil.FormatFileSize(size)}]".Replace("[] ", ""), false);
                 if (onlyShowInfo) Console.WriteLine(v.baseUrl);
             }
         }
         if (parsedResult.AudioTracks.Any())
         {
-            Log($"共计{parsedResult.AudioTracks.Count}条音频流.");
+            Logger.Log($"共计{parsedResult.AudioTracks.Count}条音频流.");
             int index = 0;
             foreach (var a in parsedResult.AudioTracks)
             {
                 int pDur = pageDur == 0 ? a.dur : pageDur;
-                LogColor($"{index++}. [{a.codecs}] [{a.bandwidth} kbps] [~{FormatFileSize(pDur * a.bandwidth * 1024 / 8)}]", false);
+                Logger.LogColor($"{index++}. [{a.codecs}] [{a.bandwidth} kbps] [~{BBDownUtil.FormatFileSize(pDur * a.bandwidth * 1024 / 8)}]", false);
                 if (onlyShowInfo) Console.WriteLine(a.baseUrl);
             }
         }
@@ -67,12 +64,12 @@ internal partial class Program
         {
             int pDur = pageDur == 0 ? selectedVideo.dur : pageDur;
             var size = selectedVideo.size > 0 ? selectedVideo.size : pDur * selectedVideo.bandwidth * 1024 / 8;
-            LogColor($"[视频] [{selectedVideo.dfn}] [{selectedVideo.res}] [{selectedVideo.codecs}] [{selectedVideo.fps}] [{selectedVideo.bandwidth} kbps] [~{FormatFileSize(size)}]".Replace("[] ", ""), false);
+            Logger.LogColor($"[视频] [{selectedVideo.dfn}] [{selectedVideo.res}] [{selectedVideo.codecs}] [{selectedVideo.fps}] [{selectedVideo.bandwidth} kbps] [~{BBDownUtil.FormatFileSize(size)}]".Replace("[] ", ""), false);
         }
         if (selectedAudio != null)
         {
             int pDur = pageDur == 0 ? selectedAudio.dur : pageDur;
-            LogColor($"[音频] [{selectedAudio.codecs}] [{selectedAudio.bandwidth} kbps] [~{FormatFileSize(pDur * selectedAudio.bandwidth * 1024 / 8)}]", false);
+            Logger.LogColor($"[音频] [{selectedAudio.codecs}] [{selectedAudio.bandwidth} kbps] [~{BBDownUtil.FormatFileSize(pDur * selectedAudio.bandwidth * 1024 / 8)}]", false);
         }
     }
 
@@ -93,7 +90,7 @@ internal partial class Program
     {
         if (parsedResult.VideoTracks.Any())
         {
-            Log("请选择一条视频流(输入序号): ", false);
+            Logger.Log("请选择一条视频流(输入序号): ", false);
             Console.ForegroundColor = ConsoleColor.Cyan;
             vIndex = ReadIntSafe();
             if (vIndex > parsedResult.VideoTracks.Count || vIndex < 0) vIndex = 0;
@@ -101,7 +98,7 @@ internal partial class Program
         }
         if (parsedResult.AudioTracks.Any())
         {
-            Log("请选择一条音频流(输入序号): ", false);
+            Logger.Log("请选择一条音频流(输入序号): ", false);
             Console.ForegroundColor = ConsoleColor.Cyan;
             aIndex = ReadIntSafe();
             if (aIndex > parsedResult.AudioTracks.Count || aIndex < 0) aIndex = 0;
@@ -113,24 +110,24 @@ internal partial class Program
     /// 下载轨道
     /// </summary>
     /// <returns></returns>
-    private static async Task DownloadTrackAsync(string url, string destPath, DownloadConfig downloadConfig, bool video)
+    private static async Task DownloadTrackAsync(string url, string destPath, BBDownDownloadUtil.DownloadConfig downloadConfig, bool video)
     {
         if (downloadConfig.MultiThread && !url.Contains("-cmcc-"))
         {
-            await MultiThreadDownloadFileAsync(url, destPath, downloadConfig);
-            Log($"合并{(video ? "视频" : "音频")}分片...");
-            CombineMultipleFilesIntoSingleFile(GetFiles(Path.GetDirectoryName(destPath)!, $".{(video ? "v" : "a")}clip"), destPath);
-            Log("清理分片...");
+            await BBDownDownloadUtil.MultiThreadDownloadFileAsync(url, destPath, downloadConfig);
+            Logger.Log($"合并{(video ? "视频" : "音频")}分片...");
+            BBDownUtil.CombineMultipleFilesIntoSingleFile(BBDownUtil.GetFiles(Path.GetDirectoryName(destPath)!, $".{(video ? "v" : "a")}clip"), destPath);
+            Logger.Log("清理分片...");
             foreach (var file in new DirectoryInfo(Path.GetDirectoryName(destPath)!).EnumerateFiles("*.?clip")) file.Delete();
         }
         else
         {
             if (downloadConfig.MultiThread && url.Contains("-cmcc-"))
             {
-                LogWarn("检测到cmcc域名cdn, 已经禁用多线程");
+                Logger.LogWarn("检测到cmcc域名cdn, 已经禁用多线程");
                 downloadConfig.ForceHttp = false;
             }
-            await DownloadFileAsync(url, destPath, downloadConfig);
+            await BBDownDownloadUtil.DownloadFileAsync(url, destPath, downloadConfig);
         }
     }
 }

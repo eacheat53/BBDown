@@ -1,12 +1,10 @@
 ﻿using System;
+using BBDown.Core.Util;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.BBDownUtil;
-using static BBDown.Core.Util.SubUtil;
-using static BBDown.Core.Logger;
 using System.IO;
 using BBDown.Core;
 using System.Runtime.InteropServices;
@@ -30,12 +28,12 @@ static partial class BBDownMuxer
         p.ErrorDataReceived += (_, output) =>
         {
             if (!string.IsNullOrWhiteSpace(output.Data))
-                Log(output.Data);
+                Logger.Log(output.Data);
         };
         p.OutputDataReceived += (_, output) =>
         {
             if (!string.IsNullOrWhiteSpace(output.Data))
-                LogDebug(output.Data);
+                Logger.LogDebug(output.Data);
         };
         p.StartInfo.StandardErrorEncoding = Encoding.UTF8;
         p.StartInfo.StandardOutputEncoding = Encoding.UTF8;
@@ -74,7 +72,7 @@ static partial class BBDownMuxer
         }
         if (points != null && points.Any())
         {
-            var meta = GetMp4boxMetaString(points);
+            var meta = BBDownUtil.GetMp4boxMetaString(points);
             var baseDir = Path.GetDirectoryName(string.IsNullOrEmpty(videoPath) ? audioPath : videoPath);
             if (string.IsNullOrEmpty(baseDir))
                 baseDir = ".";
@@ -99,15 +97,15 @@ static partial class BBDownMuxer
                 if (File.Exists(subs[i].path) && File.ReadAllText(subs[i].path!) != "")
                 {
                     nowId++;
-                    inputArg.Append($" -add \"{subs[i].path}#trackID=1:name=:hdlr=sbtl:lang={GetSubtitleCode(subs[i].lan).Item1}\" ");
-                    inputArg.Append($" -udta {nowId}:type=name:str=\"{GetSubtitleCode(subs[i].lan).Item2}\" ");
+                    inputArg.Append($" -add \"{subs[i].path}#trackID=1:name=:hdlr=sbtl:lang={SubUtil.GetSubtitleCode(subs[i].lan).Item1}\" ");
+                    inputArg.Append($" -udta {nowId}:type=name:str=\"{SubUtil.GetSubtitleCode(subs[i].lan).Item2}\" ");
                 }
             }
         }
 
         //----分析完毕
         var arguments = (Config.Current.DebugLog ? " -v " : "") + inputArg + (metaArg.ToString() == "" ? "" : " -itags tool=" + metaArg) + $" -new -- \"{outPath}\"";
-        LogDebug("mp4box命令: {0}", arguments);
+        Logger.LogDebug("mp4box命令: {0}", arguments);
         return RunExe(MP4BOX, arguments);
     }
 
@@ -171,7 +169,7 @@ static partial class BBDownMuxer
                 {
                     inputCount++;
                     inputArg.Append($"-i \"{subs[i].path}\" ");
-                    metaArg.Append($"-metadata:s:s:{i} title=\"{GetSubtitleCode(subs[i].lan).Item2}\" -metadata:s:s:{i} language={GetSubtitleCode(subs[i].lan).Item1} ");
+                    metaArg.Append($"-metadata:s:s:{i} title=\"{SubUtil.GetSubtitleCode(subs[i].lan).Item2}\" -metadata:s:s:{i} language={SubUtil.GetSubtitleCode(subs[i].lan).Item1} ");
                 }
             }
         }
@@ -182,7 +180,7 @@ static partial class BBDownMuxer
 
         if (points != null && points.Any())
         {
-            var meta = GetFFmpegMetaString(points);
+            var meta = BBDownUtil.GetFFmpegMetaString(points);
             var baseDir = Path.GetDirectoryName(string.IsNullOrEmpty(videoPath) ? audioPath : videoPath);
             if (string.IsNullOrEmpty(baseDir))
                 baseDir = ".";
@@ -216,7 +214,7 @@ static partial class BBDownMuxer
 
         string arguments = argsBuilder.ToString();
 
-        LogDebug("ffmpeg命令: {0}", arguments);
+        Logger.LogDebug("ffmpeg命令: {0}", arguments);
         return RunExe(FFMPEG, arguments);
     }
 
@@ -233,12 +231,12 @@ static partial class BBDownMuxer
             {
                 var tmpFile = Path.Combine(Path.GetDirectoryName(file)!, Path.GetFileNameWithoutExtension(file) + ".ts");
                 var arguments = $"-loglevel warning -y -i \"{file}\" -map 0 -c copy -f mpegts -bsf:v h264_mp4toannexb \"{tmpFile}\"";
-                LogDebug("ffmpeg命令: {0}", arguments);
+                Logger.LogDebug("ffmpeg命令: {0}", arguments);
                 RunExe(FFMPEG, arguments);
                 File.Delete(file);
             }
-            var f = GetFiles(Path.GetDirectoryName(files[0])!, ".ts");
-            CombineMultipleFilesIntoSingleFile(f, outPath);
+            var f = BBDownUtil.GetFiles(Path.GetDirectoryName(files[0])!, ".ts");
+            BBDownUtil.CombineMultipleFilesIntoSingleFile(f, outPath);
             foreach (var s in f) File.Delete(s);
         }
     }

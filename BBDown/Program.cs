@@ -1,14 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.BBDownUtil;
-using static BBDown.BBDownDownloadUtil;
-using static BBDown.Core.Parser;
-using static BBDown.Core.Logger;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -39,7 +35,7 @@ partial class Program
         }
         catch (Exception ex) when (ex is ArgumentOutOfRangeException or FormatException)
         {
-            LogError($"格式化日期出错: {ex.Message}");
+            Logger.LogError($"格式化日期出错: {ex.Message}");
             return ts.ToString();
         }
     }
@@ -50,7 +46,7 @@ partial class Program
 
     private static void Console_CancelKeyPress(object? sender, ConsoleCancelEventArgs e)
     {
-        LogWarn("Force Exit...");
+        Logger.LogWarn("Force Exit...");
         try
         {
             Console.ResetColor();
@@ -115,7 +111,7 @@ partial class Program
     {
         var defaultListenUrl = "http://0.0.0.0:23333";
         //检测更新
-        _ = CheckUpdateAsync();
+        _ = BBDownUtil.CheckUpdateAsync();
         var server = new BBDownApiServer();
         server.SetUpServer();
         server.Run(string.IsNullOrEmpty(listenUrl) ? defaultListenUrl : listenUrl);

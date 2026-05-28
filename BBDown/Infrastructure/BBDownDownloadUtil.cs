@@ -1,4 +1,6 @@
 ﻿using System;
+using BBDown.Core.Util;
+using BBDown.Core;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,8 +8,6 @@ using System.Net.Http;
 using System.Net;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.Core.Logger;
-using static BBDown.Core.Util.HTTPUtil;
 using System.Collections.Concurrent;
 
 namespace BBDown;
@@ -45,7 +45,7 @@ internal static class BBDownDownloadUtil
         httpRequestMessage.Headers.IfRange = lastTime != null ? new(lastTime.Value) : null;
         httpRequestMessage.RequestUri = new(url);
 
-        using var response = (await AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, token)).EnsureSuccessStatusCode();
+        using var response = (await HTTPUtil.AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, token)).EnsureSuccessStatusCode();
 
         if (response.StatusCode == HttpStatusCode.OK) // server doesn't response a partial content
         {
@@ -98,7 +98,7 @@ internal static class BBDownDownloadUtil
         try
         {
         if (config.ForceHttp) url = ReplaceUrl(url);
-        LogDebug("Start downloading: {0}", url);
+        Logger.LogDebug("Start downloading: {0}", url);
         string desDir = Path.GetDirectoryName(path)!;
         if (!string.IsNullOrEmpty(desDir) && !Directory.Exists(desDir)) Directory.CreateDirectory(desDir);
         if (config.UseAria2c)
@@ -127,7 +127,7 @@ internal static class BBDownDownloadUtil
         catch (Exception ex) when (ex is HttpRequestException or IOException or TaskCanceledException)
         {
             int backoffMs = retry * 3000;
-            LogDebug("下载失败(第{0}次重试, {1}ms后): {2}", retry + 1, backoffMs, ex.Message);
+            Logger.LogDebug("下载失败(第{0}次重试, {1}ms后): {2}", retry + 1, backoffMs, ex.Message);
             await Task.Delay(backoffMs, token);
             if (++retry == 3) throw;
         }
@@ -147,7 +147,7 @@ internal static class BBDownDownloadUtil
         try
         {
         if (config.ForceHttp) url = ReplaceUrl(url);
-        LogDebug("Start downloading: {0}", url);
+        Logger.LogDebug("Start downloading: {0}", url);
         if (config.UseAria2c)
         {
             await BBDownAria2c.DownloadFileByAria2cAsync(url, path, config.Aria2cArgs);
@@ -157,16 +157,16 @@ internal static class BBDownDownloadUtil
             return;
         }
         long fileSize = await GetFileSizeAsync(url, token);
-        LogDebug("文件大小：{0} bytes", fileSize);
+        Logger.LogDebug("文件大小：{0} bytes", fileSize);
         //已下载过, 跳过下载
         if (File.Exists(path) && new FileInfo(path).Length == fileSize)
         {
-            LogDebug("文件已下载过, 跳过下载");
+            Logger.LogDebug("文件已下载过, 跳过下载");
             return;
         }
         List<Clip> allClips = GetAllClips(url, fileSize);
         int total = allClips.Count;
-        LogDebug("分段数量：{0}", total);
+        Logger.LogDebug("分段数量：{0}", total);
         ConcurrentDictionary<int, long> clipProgress = new();
         foreach (var i in allClips) clipProgress[i.index] = 0;
 
@@ -198,7 +198,7 @@ internal static class BBDownDownloadUtil
             catch (Exception ex) when (ex is HttpRequestException or IOException or TaskCanceledException)
             {
                 int backoffMs = retry * 3000;
-                LogDebug("分段下载失败(第{0}次重试, {1}ms后): {2}", retry + 1, backoffMs, ex.Message);
+                Logger.LogDebug("分段下载失败(第{0}次重试, {1}ms后): {2}", retry + 1, backoffMs, ex.Message);
                 await Task.Delay(backoffMs, _);
                 if (++retry == 3) throw new IOException($"分段 {clip.index} 下载失败，请检查网络或关闭多线程重试", ex);
             }
@@ -243,7 +243,7 @@ internal static class BBDownDownloadUtil
         httpRequestMessage.Headers.TryAddWithoutValidation("User-Agent", "Mozilla/5.0");
         httpRequestMessage.Headers.TryAddWithoutValidation("Cookie", Core.Config.Current.Cookie);
         httpRequestMessage.RequestUri = new(url);
-        using var response = (await AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, token))
+        using var response = (await HTTPUtil.AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, token))
             .EnsureSuccessStatusCode();
         long totalSizeBytes = response.Content.Headers.ContentLength ?? 0;
 
@@ -259,11 +259,11 @@ internal static class BBDownDownloadUtil
     {
         if (url.Contains(".mcdn.bilivideo.cn:"))
         {
-            LogDebug("对[*.mcdn.bilivideo.cn:xxx]域名不做处理");
+            Logger.LogDebug("对[*.mcdn.bilivideo.cn:xxx]域名不做处理");
             return url;
         }
 
-        LogDebug("将https更改为http");
+        Logger.LogDebug("将https更改为http");
         return url.Replace("https:", "http:");
     }
 }

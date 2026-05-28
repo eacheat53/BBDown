@@ -1,8 +1,7 @@
 ﻿using System.Text;
+using BBDown.Core.Util;
 using System.Text.RegularExpressions;
 using System.Text.Json;
-using static BBDown.Core.Logger;
-using static BBDown.Core.Util.HTTPUtil;
 using static BBDown.Core.Entity.Entity;
 using System.Security.Cryptography;
 using BBDown.Core.Entity;
@@ -18,14 +17,14 @@ public static partial class Parser
 
     private static async Task<string> GetPlayJsonAsync(string encoding, string aidOri, string aid, string cid, string epId, bool tvApi, bool intl, bool appApi, bool wantDrm, string qn = "0")
     {
-        LogDebug("aid={0},cid={1},epId={2},tvApi={3},IntlApi={4},appApi={5},qn={6}", aid, cid, epId, tvApi, intl, appApi, qn);
+        Logger.LogDebug("aid={0},cid={1},epId={2},tvApi={3},IntlApi={4},appApi={5},qn={6}", aid, cid, epId, tvApi, intl, appApi, qn);
 
         if (intl) return await GetPlayJsonAsync(aid, cid, epId, qn);
 
 
         bool cheese = aidOri.StartsWith("cheese:");
         bool bangumi = cheese || aidOri.StartsWith("ep:");
-        LogDebug("bangumi={0},cheese={1}", bangumi, cheese);
+        Logger.LogDebug("bangumi={0},cheese={1}", bangumi, cheese);
 
         if (appApi) return await AppHelper.DoReqAsync(aid, cid, epId, qn, bangumi, encoding, Config.Current.Token);
 
@@ -62,13 +61,13 @@ public static partial class Parser
         if (cheese) api = api.Replace("/pgc/player/web/v2/playurl", "/pugv/player/web/playurl");
 
         //Console.WriteLine(api);
-        string webJson = await GetWebSourceAsync(api);
+        string webJson = await HTTPUtil.GetWebSourceAsync(api);
         //以下情况从网页源代码尝试解析
         if (webJson.Contains("\"大会员专享限制\""))
         {
-            Log("此视频需要大会员，您大概率需要登录一个有大会员的账号才可以下载，尝试从网页源码解析");
+            Logger.Log("此视频需要大会员，您大概率需要登录一个有大会员的账号才可以下载，尝试从网页源码解析");
             string webUrl = "https://www.bilibili.com/bangumi/play/ep" + epId;
-            string webSource = await GetWebSourceAsync(webUrl);
+            string webSource = await HTTPUtil.GetWebSourceAsync(webUrl);
             webJson = PlayerJsonRegex().Match(webSource).Groups[1].Value;
         }
         return webJson;
@@ -90,7 +89,7 @@ public static partial class Parser
         string param = paramBuilder.ToString();
         api += (isBiliPlus ? $"{param}&sign={GetSign(param, true)}" : param);
 
-        string webJson = await GetWebSourceAsync(api);
+        string webJson = await HTTPUtil.GetWebSourceAsync(api);
         return webJson;
     }
 
@@ -101,7 +100,7 @@ public static partial class Parser
         //调用解析
         parsedResult.WebJsonString = await GetPlayJsonAsync(encoding, aidOri, aid, cid, epId, tvApi, intlApi, appApi, wantDrm, qn);
 
-        LogDebug(parsedResult.WebJsonString);
+        Logger.LogDebug(parsedResult.WebJsonString);
 
         //intl接口需要两次请求(code=0和code=1)
         if (intlApi)
@@ -198,7 +197,7 @@ public static partial class Parser
                 parsedResult.DrmTechType = techElem.GetInt32();
             if (root.TryGetProperty("drm_type", out var typeElem))
                 parsedResult.DrmType = typeElem.GetString() ?? "";
-            if (parsedResult.IsDrm) LogDebug("DRM detected: type={0}, tech={1}", parsedResult.DrmType, parsedResult.DrmTechType);
+            if (parsedResult.IsDrm) Logger.LogDebug("DRM detected: type={0}, tech={1}", parsedResult.DrmType, parsedResult.DrmTechType);
 
             //免二压视频需要重新请求
             for (int reparsePass = 0; reparsePass < 2; reparsePass++)
@@ -241,7 +240,7 @@ public static partial class Parser
                 }
             }
             catch (Exception e) when (e is KeyNotFoundException or InvalidOperationException)
-            { LogDebug("杜比音频解析失败: {0}", e.Message); }
+            { Logger.LogDebug("杜比音频解析失败: {0}", e.Message); }
 
             //处理Hi-Res无损
             try
@@ -259,7 +258,7 @@ public static partial class Parser
                 }
             }
             catch (Exception e) when (e is KeyNotFoundException or InvalidOperationException)
-            { LogDebug("Hi-Res音频解析失败: {0}", e.Message); }
+            { Logger.LogDebug("Hi-Res音频解析失败: {0}", e.Message); }
 
             if (video != null)
             {
@@ -307,7 +306,7 @@ public static partial class Parser
                             parsedResult.PsshBase64 = ps;
                     }
                     catch (Exception ex) when (ex is KeyNotFoundException or InvalidOperationException)
-                    { LogDebug("DRM license info extraction error: {0}", ex.Message); }
+                    { Logger.LogDebug("DRM license info extraction error: {0}", ex.Message); }
                 }
             }
 
