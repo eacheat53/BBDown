@@ -41,7 +41,7 @@ public class SpaceVideoFetcher : IFetcher
 For /F %%a in (urls.txt) Do (BBDown.exe ""%%a"")
 pause");
         Console.WriteLine();
-        throw new Exception("暂不支持该功能");
+        throw new NotSupportedException("暂不支持该功能");
     }
 
     static async Task<List<string>> GetVideosByPageAsync(int pageNumber, int pageSize, string mid)

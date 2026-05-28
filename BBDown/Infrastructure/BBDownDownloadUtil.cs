@@ -71,7 +71,7 @@ internal static class BBDownDownloadUtil
         }
 
         if (response.Content.Headers.ContentLength != null && (response.Content.Headers.ContentLength != new FileInfo(tmpName).Length))
-            throw new Exception("Retry...");
+            throw new InvalidOperationException("Retry...");
     }
 
     private static readonly Dictionary<string, SemaphoreSlim> _downloadLocks = new();
@@ -105,7 +105,7 @@ internal static class BBDownDownloadUtil
         {
             await BBDownAria2c.DownloadFileByAria2cAsync(url, path, config.Aria2cArgs);
             if (File.Exists(path + ".aria2") || !File.Exists(path))
-                throw new Exception("aria2下载可能存在错误");
+                throw new InvalidOperationException("aria2下载可能存在错误");
             Console.WriteLine();
             return;
         }
@@ -146,7 +146,7 @@ internal static class BBDownDownloadUtil
         {
             await BBDownAria2c.DownloadFileByAria2cAsync(url, path, config.Aria2cArgs);
             if (File.Exists(path + ".aria2") || !File.Exists(path))
-                throw new Exception("aria2下载可能存在错误");
+                throw new InvalidOperationException("aria2下载可能存在错误");
             Console.WriteLine();
             return;
         }
@@ -183,12 +183,12 @@ internal static class BBDownDownloadUtil
             }
             catch (NotSupportedException)
             {
-                if (++retry == 3) throw new Exception("服务器可能并不支持多线程下载, 请使用 --multi-thread false 关闭多线程");
+                if (++retry == 3) throw new NotSupportedException("服务器可能并不支持多线程下载, 请使用 --multi-thread false 关闭多线程");
             }
             catch (Exception ex)
             {
                 LogDebug("分段下载失败(重试中): {0}", ex.Message);
-                if (++retry == 3) throw new Exception($"分段 {clip.index} 下载失败，请检查网络或关闭多线程重试", ex);
+                if (++retry == 3) throw new IOException($"分段 {clip.index} 下载失败，请检查网络或关闭多线程重试", ex);
             }
             }
         });

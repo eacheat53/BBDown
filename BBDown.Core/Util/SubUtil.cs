@@ -240,7 +240,7 @@ public static partial class SubUtil
 
                 //有空的URL 不合法
                 if (subtitles.Any(s => string.IsNullOrEmpty(s.url)))
-                    throw new Exception("Bad url");
+                    throw new ArgumentException("Bad url");
 
                 subtitles.Add(subtitle);
             }
@@ -280,7 +280,7 @@ public static partial class SubUtil
 
                 //有空的URL 不合法
                 if (subtitles.Any(s => string.IsNullOrEmpty(s.url)))
-                    throw new Exception("Bad url");
+                    throw new ArgumentException("Bad url");
 
                 subtitles.Add(subtitle);
             }
@@ -316,7 +316,7 @@ public static partial class SubUtil
 
             //有空的URL 不合法
             if (subtitles.Any(s => string.IsNullOrEmpty(s.url)))
-                throw new Exception("Bad url");
+                throw new ArgumentException("Bad url");
 
             //无字幕片源 但是字幕没上导致的空列表，尝试从国际接口获取
             //if (subtitles.Count == 0 && !string.IsNullOrEmpty(epId))
@@ -355,7 +355,7 @@ public static partial class SubUtil
 
             //有空的URL 不合法
             if (subtitles.Any(s => string.IsNullOrEmpty(s.url)))
-                throw new Exception("Bad url");
+                throw new ArgumentException("Bad url");
 
             return subtitles;
         }
@@ -401,7 +401,7 @@ public static partial class SubUtil
             }
             //有空的URL 不合法
             if (subtitles.Any(s => string.IsNullOrEmpty(s.url)))
-                throw new Exception("Bad url");
+                throw new ArgumentException("Bad url");
 
             return subtitles;
         }

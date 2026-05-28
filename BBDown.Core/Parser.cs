@@ -293,7 +293,7 @@ public static partial class Parser
                     {
                         var firstVideo = video.FirstOrDefault();
                         if (firstVideo.ValueKind == System.Text.Json.JsonValueKind.Undefined)
-                            throw new Exception("视频轨道为空，无法提取 DRM 信息");
+                            throw new InvalidOperationException("视频轨道为空，无法提取 DRM 信息");
                         if (firstVideo.TryGetProperty("bilidrm_uri", out var drmUri))
                         {
                             var uri = drmUri.GetString() ?? "";
