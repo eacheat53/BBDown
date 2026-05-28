@@ -87,40 +87,25 @@ Commands:
 - [x] 下载目标文件并发排他锁（按路径 `SemaphoreSlim`）
 - [x] 异常粒度精细化（28 处 `Exception` → 语义化类型）
 - [x] 重试策略精细化（指数退避 + 不可重试异常短路）
+- [x] 下载链路 `CancellationToken` 贯通（CLI Ctrl+C / API 请求取消）
+- [x] `Config` 全局静态可变状态重构（`AppSettings` record + 线程安全锁）
+- [x] `.tmp` 文件断点续传（完整临时文件自动移动，写入校验修复）
+- [x] 日志系统适配 API 服务器（`Logger.LogFilePath` → `bbdown-api.log`）
+- [x] 支持更多自定义选项（`--muxer-timeout` / `--retry-count` / `--retry-delay` / `--thread-segment-size`）
+- [x] 零测试覆盖 → 单元测试骨架（`BBDown.Tests` + `BilibiliBvConverterTests` / `UrlResolverTests` / `FormatHelperTests`）
+- [x] 拆分下载/解析核心方法（`UrlResolver.cs` / `ExternalToolHelper.cs`）
 
 ## 待完成 🔴
 
-- [ ] **下载链路 CancellationToken 贯通**
-  - 现状：`CancellationToken` 参数存在但从未传入 `HttpClient.SendAsync` 和 `stream.ReadAsync`
-  - 影响：CLI `Ctrl+C` 后下载继续；API 任务无法取消
-
-- [ ] **Config 全局静态可变状态重构**
-  - 现状：`Config.COOKIE/TOKEN/HOST` 全部为 `public static` 可写
-  - 影响：API 并发任务互相覆盖凭据；单元测试无法并行
-
-- [ ] **.tmp 文件断点续传**
-  - 现状：崩溃后 `.tmp` 残留文件不被识别，从头开始
-  - 影响：大文件下载中断浪费流量
-
-- [ ] **日志系统适配 API 服务器**
-  - 现状：`Logger` 直接写 `Console`，后台/Docker 模式污染日志
-  - 影响：API 服务器运维可观测性差
-
 - [ ] **JSON 解析统一错误包装**
-  - 现状：`GetProperty` 链式调用缺失属性直接抛 `KeyNotFoundException`
+  - 现状：`JsonElementExtensions` 已建立，`NormalInfoFetcher` / `FavListFetcher` 已应用，其余 ~170 处调用待逐步迁移
   - 影响：无上下文信息，难定位问题字段
 
 - [ ] **自动刷新 cookie**
   - 现状：cookie 过期后需手动重新 `BBDown login`
 
-- [ ] **支持更多自定义选项**
-  - 现状：部分参数硬编码（超时时间、并发数）
-
-- [ ] **零测试覆盖 → 单元测试骨架**
-  - 现状：无任何单元测试、集成测试或 mock 测试
-
-- [ ] **拆分下载/解析核心方法**
-  - 现状：`DownloadPagesAsync`、`Workflow.cs` 等方法过长，职责混杂
+- [ ] **API 并发数自定义**
+  - 现状：`SemaphoreSlim(3)` 硬编码，未暴露为 CLI 参数
 
 # 使用教程
 
