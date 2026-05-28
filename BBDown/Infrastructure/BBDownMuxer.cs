@@ -1,11 +1,11 @@
 ﻿using System;
+using BBDown.Core.Util;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using static BBDown.Core.Entity.Entity;
 using static BBDown.BBDownUtil;
-using static BBDown.Core.Util.SubUtil;
 using System.IO;
 using BBDown.Core;
 using System.Runtime.InteropServices;
@@ -98,8 +98,8 @@ static partial class BBDownMuxer
                 if (File.Exists(subs[i].path) && File.ReadAllText(subs[i].path!) != "")
                 {
                     nowId++;
-                    inputArg.Append($" -add \"{subs[i].path}#trackID=1:name=:hdlr=sbtl:lang={GetSubtitleCode(subs[i].lan).Item1}\" ");
-                    inputArg.Append($" -udta {nowId}:type=name:str=\"{GetSubtitleCode(subs[i].lan).Item2}\" ");
+                    inputArg.Append($" -add \"{subs[i].path}#trackID=1:name=:hdlr=sbtl:lang={SubUtil.GetSubtitleCode(subs[i].lan).Item1}\" ");
+                    inputArg.Append($" -udta {nowId}:type=name:str=\"{SubUtil.GetSubtitleCode(subs[i].lan).Item2}\" ");
                 }
             }
         }
@@ -170,7 +170,7 @@ static partial class BBDownMuxer
                 {
                     inputCount++;
                     inputArg.Append($"-i \"{subs[i].path}\" ");
-                    metaArg.Append($"-metadata:s:s:{i} title=\"{GetSubtitleCode(subs[i].lan).Item2}\" -metadata:s:s:{i} language={GetSubtitleCode(subs[i].lan).Item1} ");
+                    metaArg.Append($"-metadata:s:s:{i} title=\"{SubUtil.GetSubtitleCode(subs[i].lan).Item2}\" -metadata:s:s:{i} language={SubUtil.GetSubtitleCode(subs[i].lan).Item1} ");
                 }
             }
         }
