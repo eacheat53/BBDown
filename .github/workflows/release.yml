@@ -161,40 +161,35 @@ jobs:
           path: artifacts
           merge-multiple: true
 
-      - name: Extract version changelog
-        id: changelog
+      - name: Build release notes
         run: |
           TAG="${{ github.ref_name }}"
           VERSION="${TAG#v}"
-          NOTES=$(sed -n "/^## \\[$VERSION\\]/,/^## \\[/p" CHANGELOG.md | sed '$d')
-          if [ -z "$NOTES" ]; then
-            NOTES="详见 [CHANGELOG.md](./CHANGELOG.md)"
-          fi
-          {
-            echo "content<<EOF"
-            echo "$NOTES"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Generate release notes
-        id: notes
-        run: |
-          TAG="${{ github.ref_name }}"
           PREV_TAG=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || echo "")
+
+          # Extract changelog section for this version
+          NOTES_FILE=$(mktemp)
           {
-            echo "release_notes<<EOF"
-            echo "${{ steps.changelog.outputs.content }}"
+            # Changelog for this version
+            if [ -f CHANGELOG.md ]; then
+              awk "/^## \\[$VERSION\\]/{flag=1; next} /^## \\[/{if(flag) exit} flag" CHANGELOG.md
+            fi
+
             echo ""
             echo "---"
             echo ""
-            echo "## What's Changed"
+
+            # Commits since previous tag
+            echo "## Commits"
             echo ""
             if [ -n "$PREV_TAG" ]; then
-              git log --pretty=format:'- %s by @%an in %h' --no-merges "$PREV_TAG..$TAG"
+              git log --pretty=format:'- %s' --no-merges "$PREV_TAG..$TAG" || true
             else
               echo "Initial release."
             fi
             echo ""
+
+            # Downloads table
             echo "## Downloads"
             echo ""
             echo "| Platform | Architecture |"
@@ -203,19 +198,17 @@ jobs:
             echo "| Linux    | x64, arm64  |"
             echo "| macOS    | x64, arm64  |"
             echo ""
-            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG:-HEAD}...$TAG"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: BBDown ${{ github.ref_name }}
-          body: ${{ steps.notes.outputs.release_notes }}
-          draft: false
-          prerelease: ${{ contains(github.ref_name, '-') }}
-          files: |
+            if [ -n "$PREV_TAG" ]; then
+              echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${TAG}"
+            fi
+          } >> "$NOTES_FILE"
+
+          # Use gh CLI to create release with notes from file
+          gh release create "$TAG" \
+            --title "BBDown ${TAG}" \
+            --notes-file "$NOTES_FILE" \
+            ${{ contains(github.ref_name, '-') && '--prerelease' || '' }} \
             artifacts/*.zip
-            CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
