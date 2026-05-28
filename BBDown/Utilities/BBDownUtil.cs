@@ -232,15 +232,15 @@ public static partial class BBDownUtil
             string api = $"https://api.bilibili.com/x/player/wbi/v2?cid={cid}&aid={aid}";
             string json = await HTTPUtil.GetWebSourceAsync(api);
             using var infoJson = JsonDocument.Parse(json);
-            if (infoJson.RootElement.GetProperty("data").TryGetProperty("view_points", out JsonElement vPoint))
+            if (infoJson.RootElement.TryGetPropertySafe("data")?.TryGetProperty("view_points", out JsonElement vPoint) == true)
             {
                 foreach (var point in vPoint.EnumerateArray())
                 {
                     points.Add(new ViewPoint()
                     {
-                        title = point.GetProperty("content").GetString()!,
-                        start = point.GetProperty("from").GetInt32(),
-                        end = point.GetProperty("to").GetInt32()
+                        title = point.GetStringSafe("content"),
+                        start = point.GetInt32Safe("from"),
+                        end = point.GetInt32Safe("to")
                     });
                 }
             }
