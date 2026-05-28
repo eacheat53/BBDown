@@ -42,7 +42,7 @@ public class BangumiInfoFetcher : IFetcher
                 foreach (var section in sections.EnumerateArray())
                 {
                     bool inSection = false;
-                    foreach (var ep in section.GetProperty("episodes").EnumerateArray())
+                    foreach (var ep in section.EnumerateArraySafe("episodes"))
                     {
                         if (ep.TryGetProperty("id", out var eid) && eid.ToString() == id)
                         {

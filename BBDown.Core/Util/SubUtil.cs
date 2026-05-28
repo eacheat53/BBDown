@@ -265,7 +265,7 @@ public static partial class SubUtil
             if (modules.GetArrayLength() == 0) return null;
             var episodes = modules[0].GetPropertySafe("data").GetPropertySafe("episodes");
             if (index < 1 || index > episodes.GetArrayLength()) return null;
-            var subs = episodes[index - 1].GetProperty("subtitles").EnumerateArray();
+            var subs = episodes[index - 1].EnumerateArraySafe("subtitles");
             foreach (var sub in subs)
             {
                 var lan = sub.GetValueAsStringSafe("key");
