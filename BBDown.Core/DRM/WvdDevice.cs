@@ -46,8 +46,12 @@ public class WvdDevice : IDisposable
     private static WvdDevice ParseWvd(Span<byte> data)
     {
         var version = data[0];
-        if (version != 1)
+        if (version is not (1 or 2))
             throw new InvalidDataException($"Unsupported WVD version: {version}");
+
+        // V2 may encrypt private key with AES when flags indicate so
+        if (version == 2 && (data[3] & 0x01) != 0)
+            throw new InvalidDataException("Encrypted WVD V2 private key is not supported yet");
 
         var type = data[1];
         var securityLevel = data[2];
