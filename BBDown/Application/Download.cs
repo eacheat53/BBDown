@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
 using static BBDown.BBDownUtil;
-using static BBDown.ExternalToolHelper;
 using BBDown.Core;
 using BBDown.Core.Entity;
 using System.Text.Json;
@@ -315,7 +314,7 @@ internal partial class Program
                 if (selectedVideo != null)
                 {
                     //杜比视界, 若ffmpeg版本小于5.0, 使用mp4box封装
-                    if (selectedVideo.dfn == AppSettings.QualityMap["126"] && !myOption.UseMP4box && !CheckFFmpegDOVI())
+                    if (selectedVideo.dfn == AppSettings.QualityMap["126"] && !myOption.UseMP4box && !ExternalToolHelper.CheckFFmpegDOVI())
                     {
                         Logger.LogWarn($"检测到杜比视界清晰度且您的ffmpeg版本小于5.0,将使用mp4box混流...");
                         myOption.UseMP4box = true;

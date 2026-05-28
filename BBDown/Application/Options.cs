@@ -4,7 +4,6 @@ using System.IO;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
 using static BBDown.BBDownUtil;
-using static BBDown.ExternalToolHelper;
 using System.Linq;
 using System.Text.RegularExpressions;
 using BBDown.Core;
@@ -159,7 +158,7 @@ internal partial class Program
             {
                 if (string.IsNullOrEmpty(BBDownMuxer.MP4BOX) || !File.Exists(BBDownMuxer.MP4BOX))
                 {
-                    var binPath = FindExecutable("mp4box") ?? FindExecutable("MP4box");
+                    var binPath = ExternalToolHelper.FindExecutable("mp4box") ?? ExternalToolHelper.FindExecutable("MP4box");
                     if (string.IsNullOrEmpty(binPath))
                         throw new FileNotFoundException("找不到可执行的mp4box文件");
                     BBDownMuxer.MP4BOX = binPath;
@@ -167,7 +166,7 @@ internal partial class Program
             }
             else if (string.IsNullOrEmpty(BBDownMuxer.FFMPEG) || !File.Exists(BBDownMuxer.FFMPEG))
             {
-                var binPath = FindExecutable("ffmpeg");
+                var binPath = ExternalToolHelper.FindExecutable("ffmpeg");
                 if (string.IsNullOrEmpty(binPath))
                     throw new FileNotFoundException("找不到可执行的ffmpeg文件");
                 BBDownMuxer.FFMPEG = binPath;
@@ -179,7 +178,7 @@ internal partial class Program
         {
             if (string.IsNullOrEmpty(BBDownAria2c.ARIA2C) || !File.Exists(BBDownAria2c.ARIA2C))
             {
-                var binPath = FindExecutable("aria2c");
+                var binPath = ExternalToolHelper.FindExecutable("aria2c");
                 if (string.IsNullOrEmpty(binPath))
                     throw new FileNotFoundException("找不到可执行的aria2c文件");
                 BBDownAria2c.ARIA2C = binPath;
