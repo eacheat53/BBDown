@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
 using BBDown.Core;
@@ -15,8 +16,10 @@ namespace BBDown;
 internal partial class Program
 {
     public static async Task DownloadPagesAsync(MyOption myOption, VInfo vInfo, Dictionary<string, byte> encodingPriority, Dictionary<string, int> dfnPriority,
-        string? firstEncoding, bool downloadDanmaku, BBDownDanmakuFormat[] downloadDanmakuFormats, string input, string savePathFormat, string lang, string aidOri, int delay, string apiType, DownloadTask? relatedTask = null)
+        string? firstEncoding, bool downloadDanmaku, BBDownDanmakuFormat[] downloadDanmakuFormats, string input, string savePathFormat, string lang, string aidOri, int delay, string apiType, DownloadTask? relatedTask = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        cancellationToken.ThrowIfCancellationRequested();
         List<Page> pagesInfo = vInfo.PagesInfo;
         bool bangumi = vInfo.IsBangumi;
         bool cheese = vInfo.IsCheese;
@@ -45,7 +48,7 @@ internal partial class Program
             if (pagesInfo.Count > 1 && delay > 0)
             {
                 Logger.Log($"停顿{delay}秒...");
-                await Task.Delay(delay * 1000);
+                await Task.Delay(delay * 1000, cancellationToken);
             }
             Logger.Log($"开始解析P{p.index}: {p.aid}... ({pagesInfo.IndexOf(p) + 1} of {pagesInfo.Count})");
 
@@ -60,7 +63,7 @@ internal partial class Program
             }
 
             await DownloadPageAsync(p, myOption, vInfo, pagesInfo, encodingPriority, dfnPriority, firstEncoding,
-                downloadDanmaku, downloadDanmakuFormats, input, savePathFormat, lang, aidOri, apiType, relatedTask);
+                downloadDanmaku, downloadDanmakuFormats, input, savePathFormat, lang, aidOri, apiType, relatedTask, cancellationToken);
 
             if (myOption.SaveArchivesToFile)
             {
@@ -72,7 +75,7 @@ internal partial class Program
     }
 
     private static async Task DownloadPageAsync(Page p, MyOption myOption, VInfo vInfo, List<Page> selectedPagesInfo, Dictionary<string, byte> encodingPriority, Dictionary<string, int> dfnPriority,
-        string? firstEncoding, bool downloadDanmaku, BBDownDanmakuFormat[] downloadDanmakuFormats, string input, string savePathFormat, string lang, string aidOri, string apiType, DownloadTask? relatedTask = null)
+        string? firstEncoding, bool downloadDanmaku, BBDownDanmakuFormat[] downloadDanmakuFormats, string input, string savePathFormat, string lang, string aidOri, string apiType, DownloadTask? relatedTask = null, CancellationToken cancellationToken = default)
     {
         string desc = string.IsNullOrEmpty(p.desc) ? vInfo.Desc : p.desc;
         bool bangumi = vInfo.IsBangumi;
@@ -108,7 +111,7 @@ internal partial class Program
                 }
                 if (!myOption.SkipCover && !myOption.SubOnly && !File.Exists(coverPath) && !myOption.DanmakuOnly && !myOption.CoverOnly)
                 {
-                    await BBDownDownloadUtil.DownloadFileAsync(pic == "" ? p.cover! : pic, coverPath, new BBDownDownloadUtil.DownloadConfig());
+                    await BBDownDownloadUtil.DownloadFileAsync(pic == "" ? p.cover! : pic, coverPath, new BBDownDownloadUtil.DownloadConfig(), cancellationToken);
                 }
 
                 if (!myOption.SkipSubtitle && !myOption.DanmakuOnly && !myOption.CoverOnly)
@@ -243,7 +246,7 @@ internal partial class Program
                     var danmakuAssPath = Path.ChangeExtension(savePath, ".ass");
                     Logger.Log("正在下载弹幕Xml文件");
                     var danmakuUrl = $"https://comment.bilibili.com/{p.cid}.xml";
-                    await BBDownDownloadUtil.DownloadFileAsync(danmakuUrl, danmakuXmlPath, downloadConfig);
+                    await BBDownDownloadUtil.DownloadFileAsync(danmakuUrl, danmakuXmlPath, downloadConfig, cancellationToken);
                     var danmakus = DanmakuUtil.ParseXml(danmakuXmlPath);
                     if (danmakus == null)
                     {
@@ -281,7 +284,7 @@ internal partial class Program
                 {
                     var coverUrl = pic == "" ? p.cover! : pic;
                     var newCoverPath = Path.ChangeExtension(savePath, Path.GetExtension(coverUrl));
-                    await BBDownDownloadUtil.DownloadFileAsync(coverUrl, newCoverPath, downloadConfig);
+                    await BBDownDownloadUtil.DownloadFileAsync(coverUrl, newCoverPath, downloadConfig, cancellationToken);
                     if (Directory.Exists(p.aid) && Directory.GetFiles(p.aid).Length == 0) Directory.Delete(p.aid, true);
                     relatedTask?.SavePaths.Add(newCoverPath);
                 }
@@ -374,7 +377,7 @@ internal partial class Program
                     Logger.LogError("合并失败"); return;
                 }
                 Logger.Log("清理临时文件...");
-                await Task.Delay(200);
+                await Task.Delay(200, cancellationToken);
                 if (parsedResult.VideoTracks.Any()) File.Delete(videoPath);
                 if (parsedResult.AudioTracks.Any()) File.Delete(audioPath);
                 if (p.points.Any()) File.Delete(Path.Combine(Path.GetDirectoryName(string.IsNullOrEmpty(videoPath) ? audioPath : videoPath)!, "chapters"));
@@ -467,7 +470,7 @@ internal partial class Program
                     Logger.LogError("合并失败"); return;
                 }
                 Logger.Log("清理临时文件...");
-                await Task.Delay(200);
+                await Task.Delay(200, cancellationToken);
                 if (parsedResult.VideoTracks.Count != 0) File.Delete(videoPath);
                 foreach (var s in subtitleInfo) File.Delete(s.path);
                 foreach (var a in audioMaterial) File.Delete(a.path);
@@ -505,7 +508,7 @@ internal partial class Program
             if (retryCount >= 3) throw;
             Logger.LogError(ex.Message);
             Logger.LogWarn("下载出现异常, 3秒后将进行自动重试...");
-            await Task.Delay(3000);
+            await Task.Delay(3000, cancellationToken);
         }
         }
     }

@@ -89,7 +89,7 @@ public class BBDownApiServer
                 return Results.BadRequest("输入有误");
             }
             var req = bindingResult.Result!;
-            _ = AddDownloadTaskAsync(req, req.CallBackWebHook);
+            _ = AddDownloadTaskAsync(req, req.CallBackWebHook, token);
             return Results.Ok();
         });
         var finishedRemovalApi = app.MapGroup("remove-finished");
@@ -125,7 +125,7 @@ public class BBDownApiServer
         app.Run(url);
     }
 
-    private async Task<DownloadTask> AddDownloadTaskAsync(MyOption option, string? callBackWebHook = null)
+    private async Task<DownloadTask> AddDownloadTaskAsync(MyOption option, string? callBackWebHook = null, CancellationToken cancellationToken = default)
     {
         var aid = await BBDownUtil.GetAvIdAsync(option.Url);
         DownloadTask? runningTask;
@@ -136,7 +136,7 @@ public class BBDownApiServer
         };
         var task = new DownloadTask(aid, option.Url, DateTimeOffset.Now.ToUnixTimeSeconds());
         lock (_taskLock) { runningTasks.Add(task); }
-        await _concurrencyLimiter.WaitAsync();
+        await _concurrencyLimiter.WaitAsync(cancellationToken);
         try
         {
             var (encodingPriority, dfnPriority, firstEncoding, downloadDanmaku, downloadDanmakuFormats, input, savePathFormat, lang, aidOri, delay) = Program.SetUpWork(option);
@@ -145,7 +145,7 @@ public class BBDownApiServer
             task.Pic = vInfo.Pic;
             task.VideoPubTime = vInfo.PubTime;
             await Program.DownloadPagesAsync(option, vInfo, encodingPriority, dfnPriority, firstEncoding, downloadDanmaku, downloadDanmakuFormats,
-                        input, savePathFormat, lang, fetchedAid, delay, apiType, task);
+                        input, savePathFormat, lang, fetchedAid, delay, apiType, task, cancellationToken);
             task.IsSuccessful = true;
         }
         catch (Exception e) when (e is HttpRequestException or JsonException or IOException or InvalidOperationException)
