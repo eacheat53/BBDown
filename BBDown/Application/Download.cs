@@ -157,7 +157,7 @@ internal partial class Program
                 p.points = parsedResult.ExtraPoints;
             }
 
-            if (Config.DEBUG_LOG)
+            if (Config.Current.DebugLog)
             {
                 var debugFile = $"debug_{DateTime.Now:yyyyMMddHHmmssfff}.json";
                 File.WriteAllText(debugFile, parsedResult.WebJsonString);

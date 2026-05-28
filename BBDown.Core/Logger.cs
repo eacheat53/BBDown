@@ -45,7 +45,7 @@ public static class Logger
 
     public static void LogDebug(string toFormat, params object[] args)
     {
-        if (Config.DEBUG_LOG)
+        if (Config.Current.DebugLog)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
             Console.Write(DateTime.Now.ToString("[yyyy-MM-dd HH:mm:ss.fff]") + " - ");

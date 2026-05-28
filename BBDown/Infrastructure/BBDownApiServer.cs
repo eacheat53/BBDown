@@ -150,7 +150,7 @@ public class BBDownApiServer
         }
         catch (Exception e) when (e is HttpRequestException or JsonException or IOException or InvalidOperationException)
         {
-            bool debugMode = option.Debug || Config.DEBUG_LOG;
+            bool debugMode = option.Debug || Config.Current.DebugLog;
             var displayMsg = debugMode ? e.ToString() : e.Message;
             if (debugMode)
             {

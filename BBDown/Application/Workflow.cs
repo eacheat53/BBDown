@@ -57,7 +57,7 @@ internal partial class Program
         ));
 
         LogDebug("AppDirectory: {0}", APP_DIR);
-        if (Config.DEBUG_LOG)
+        if (Config.Current.DebugLog)
         {
             var savedCookie = myOption.Cookie;
             var savedToken = myOption.AccessToken;
