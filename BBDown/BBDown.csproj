@@ -25,6 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <TrimmerRootAssembly Include="BBDown" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BBDown.Core\BBDown.Core.csproj" />
   </ItemGroup>
 

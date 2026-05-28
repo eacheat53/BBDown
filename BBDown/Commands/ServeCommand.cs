@@ -1,9 +1,11 @@
 using Spectre.Console.Cli;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
 namespace BBDown.Commands;
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties | DynamicallyAccessedMemberTypes.PublicConstructors)]
 public class ServeSettings : CommandSettings
 {
     [CommandOption("-l|--listen")]
@@ -15,6 +17,7 @@ public class ServeSettings : CommandSettings
     public int MaxConcurrent { get; set; } = 3;
 }
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)]
 public class ServeCommand : Command<ServeSettings>
 {
     protected override int Execute(CommandContext context, ServeSettings settings, CancellationToken cancellationToken)
