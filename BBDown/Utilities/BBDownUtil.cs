@@ -314,7 +314,7 @@ public static partial class BBDownUtil
         return tmp.ToString();
     }
 
-    public static async Task<bool> CheckLogin(string cookie)
+    public static async Task<(bool isLoggedIn, bool cookieExpired)> CheckLoginWithDetails(string cookie)
     {
         try
         {
@@ -322,17 +322,29 @@ public static partial class BBDownUtil
             var source = await HTTPUtil.GetWebSourceAsync(api);
             using var navDoc = JsonDocument.Parse(source);
             var json = navDoc.RootElement;
-            var is_login = json.GetProperty("data").GetProperty("isLogin").GetBoolean();
-            var wbi_img = json.GetProperty("data").GetProperty("wbi_img");
-            Core.Config.WBI = GetMixinKey(RSubString(wbi_img.GetProperty("img_url").GetString()!) + RSubString(wbi_img.GetProperty("sub_url").GetString()!));
+            int code = json.GetPropertySafe("code").GetInt32();
+            if (code == -101)
+            {
+                Logger.LogDebug("Cookie 已过期或无效 (code=-101)");
+                return (false, true);
+            }
+            var is_login = json.GetPropertySafe("data").GetPropertySafe("isLogin").GetBoolean();
+            var wbi_img = json.GetPropertySafe("data").GetPropertySafe("wbi_img");
+            Core.Config.WBI = GetMixinKey(RSubString(wbi_img.GetPropertySafe("img_url").GetString()!) + RSubString(wbi_img.GetPropertySafe("sub_url").GetString()!));
             Logger.LogDebug("wbi: {0}", Core.Config.WBI);
-            return is_login;
+            return (is_login, false);
         }
-        catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException or InvalidOperationException)
         {
             Logger.LogDebug("检测登录状态失败: {0}", ex.Message);
-            return false;
+            return (false, false);
         }
+    }
+
+    public static async Task<bool> CheckLogin(string cookie)
+    {
+        var (isLoggedIn, _) = await CheckLoginWithDetails(cookie);
+        return isLoggedIn;
     }
     [GeneratedRegex("(^|&)?(\\w+)=([^&]+)(&|$)?", RegexOptions.Compiled)]
     private static partial Regex QueryRegex();

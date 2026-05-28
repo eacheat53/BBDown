@@ -81,13 +81,25 @@ internal partial class Program
         if (myOption is { UseIntlApi: false, UseTvApi: false } && Config.Current.Area == "")
         {
             Logger.Log("检测账号登录...");
-            if (!await BBDownUtil.CheckLogin(Config.Current.Cookie))
+            var (isLoggedIn, cookieExpired) = await BBDownUtil.CheckLoginWithDetails(Config.Current.Cookie);
+            if (!isLoggedIn)
             {
-                Logger.LogWarn("========================================");
-                Logger.LogWarn("  你尚未登录B站账号！");
-                Logger.LogWarn("  未登录状态下仅能下载6分钟试看片段。");
-                Logger.LogWarn("  请运行 BBDown login 扫码登录以获取完整视频。");
-                Logger.LogWarn("========================================");
+                if (cookieExpired)
+                {
+                    Logger.LogWarn("========================================");
+                    Logger.LogWarn("  Cookie 已过期！");
+                    Logger.LogWarn("  请运行 BBDown login 重新扫码登录以获取新 Cookie。");
+                    Logger.LogWarn("  或者使用 --use-tv-api 配合 --access-token 下载。");
+                    Logger.LogWarn("========================================");
+                }
+                else
+                {
+                    Logger.LogWarn("========================================");
+                    Logger.LogWarn("  你尚未登录B站账号！");
+                    Logger.LogWarn("  未登录状态下仅能下载6分钟试看片段。");
+                    Logger.LogWarn("  请运行 BBDown login 扫码登录以获取完整视频。");
+                    Logger.LogWarn("========================================");
+                }
             }
         }
 
