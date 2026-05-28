@@ -223,7 +223,7 @@ public static partial class SubUtil
         try
         {
             List<Subtitle> subtitles = new();
-            string api = "https://" + (Config.EPHOST == "api.bilibili.com" ? "api.biliintl.com" : Config.EPHOST) + $"/intl/gateway/web/v2/subtitle?episode_id={epId}";
+            string api = "https://" + (Config.Current.EpHost == "api.bilibili.com" ? "api.biliintl.com" : Config.Current.EpHost) + $"/intl/gateway/web/v2/subtitle?episode_id={epId}";
             string json = await GetWebSourceAsync(api);
             using var infoJson = JsonDocument.Parse(json);
             var subs = infoJson.RootElement.GetProperty("data").GetProperty("subtitles").EnumerateArray();
@@ -258,8 +258,8 @@ public static partial class SubUtil
         try
         {
             List<Subtitle> subtitles = new();
-            string api = "https://" + (Config.HOST == "api.bilibili.com" ? "api.bilibili.tv" : Config.HOST) +
-                         $"/intl/gateway/v2/ogv/view/app/season?ep_id={epId}&platform=android&s_locale=zh_SG" + (Config.TOKEN != "" ? $"&access_key={Config.TOKEN}" : "");
+            string api = "https://" + (Config.Current.Host == "api.bilibili.com" ? "api.bilibili.tv" : Config.Current.Host) +
+                         $"/intl/gateway/v2/ogv/view/app/season?ep_id={epId}&platform=android&s_locale=zh_SG" + (Config.Current.Token != "" ? $"&access_key={Config.Current.Token}" : "");
             string json = await GetWebSourceAsync(api);
             using var infoJson = JsonDocument.Parse(json);
             var modules = infoJson.RootElement.GetProperty("result").GetProperty("modules");
@@ -423,7 +423,7 @@ public static partial class SubUtil
         }
         else
         {
-            if (Config.COOKIE == "")
+            if (Config.Current.Cookie == "")
             {
                 subtitles = await GetSubtitlesFromApi3Async(aid, cid, epId, index); // 未登录只有APP可以拿到字幕了
             }

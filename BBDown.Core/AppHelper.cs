@@ -241,7 +241,7 @@ static class AppHelper
             ["te"] = "trailers",
             ["x-bili-fawkes-req-bin"] = GenerateFawkesReqBin(),
             ["x-bili-metadata-bin"] = GenerateMetadataBin(appkey),
-            ["authorization"] = $"identify_v1 {Config.TOKEN}",
+            ["authorization"] = $"identify_v1 {Config.Current.Token}",
             ["x-bili-device-bin"] = GenerateDeviceBin(),
             ["x-bili-network-bin"] = GenerateNetworkBin(),
             ["x-bili-restriction-bin"] = "",

@@ -98,12 +98,12 @@ internal partial class Program
             }
 
             var akamReg = AkamRegex();
-            if (selectedVideo != null && Config.AREA != "" && selectedVideo.baseUrl.Contains("akamaized.net"))
+            if (selectedVideo != null && Config.Current.Area != "" && selectedVideo.baseUrl.Contains("akamaized.net"))
             {
                 LogWarn($"检测到视频流为外国源, 尝试强制替换为{BACKUP_HOST}……");
                 selectedVideo.baseUrl = akamReg.Replace(selectedVideo.baseUrl, $"://{BACKUP_HOST}/");
             }
-            if (selectedAudio != null && Config.AREA != "" && selectedAudio.baseUrl.Contains("akamaized.net"))
+            if (selectedAudio != null && Config.Current.Area != "" && selectedAudio.baseUrl.Contains("akamaized.net"))
             {
                 LogWarn($"检测到音频流为外国源, 尝试强制替换为{BACKUP_HOST}……");
                 selectedAudio.baseUrl = akamReg.Replace(selectedAudio.baseUrl, $"://{BACKUP_HOST}/");

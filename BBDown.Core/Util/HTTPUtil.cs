@@ -15,7 +15,7 @@ public static class HTTPUtil
             AutomaticDecompression = DecompressionMethods.All,
             PooledConnectionLifetime = TimeSpan.FromMinutes(5),
         };
-        if (Config.SKIP_SSL_CHECK)
+        if (Config.Current.SkipSslCheck)
         {
             handler.SslOptions = new System.Net.Security.SslClientAuthenticationOptions
             {
@@ -57,7 +57,7 @@ public static class HTTPUtil
         using var webRequest = new HttpRequestMessage(HttpMethod.Get, url);
         webRequest.Headers.TryAddWithoutValidation("User-Agent", userAgent ?? UserAgent);
         webRequest.Headers.TryAddWithoutValidation("Accept-Encoding", "gzip, deflate");
-        webRequest.Headers.TryAddWithoutValidation("Cookie", (url.Contains("/ep") || url.Contains("/ss")) ? Config.COOKIE + ";CURRENT_FNVAL=4048;" : Config.COOKIE);
+        webRequest.Headers.TryAddWithoutValidation("Cookie", (url.Contains("/ep") || url.Contains("/ss")) ? Config.Current.Cookie + ";CURRENT_FNVAL=4048;" : Config.Current.Cookie);
         if (url.Contains("api.bilibili.com"))
             webRequest.Headers.TryAddWithoutValidation("Referer", "https://www.bilibili.com/");
         if (url.Contains("api.bilibili.tv"))

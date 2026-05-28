@@ -76,10 +76,10 @@ internal partial class Program
         LoadCredentials(myOption);
 
         // 检测是否登录了账号
-        if (myOption is { UseIntlApi: false, UseTvApi: false } && Config.AREA == "")
+        if (myOption is { UseIntlApi: false, UseTvApi: false } && Config.Current.Area == "")
         {
             Log("检测账号登录...");
-            if (!await CheckLogin(Config.COOKIE))
+            if (!await CheckLogin(Config.Current.Cookie))
             {
                 LogWarn("========================================");
                 LogWarn("  你尚未登录B站账号！");

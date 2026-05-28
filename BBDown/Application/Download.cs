@@ -318,7 +318,7 @@ internal partial class Program
                 if (selectedVideo != null)
                 {
                     //杜比视界, 若ffmpeg版本小于5.0, 使用mp4box封装
-                    if (selectedVideo.dfn == Config.qualitys["126"] && !myOption.UseMP4box && !CheckFFmpegDOVI())
+                    if (selectedVideo.dfn == AppSettings.QualityMap["126"] && !myOption.UseMP4box && !CheckFFmpegDOVI())
                     {
                         LogWarn($"检测到杜比视界清晰度且您的ffmpeg版本小于5.0,将使用mp4box混流...");
                         myOption.UseMP4box = true;
@@ -404,7 +404,7 @@ internal partial class Program
                 if (myOption.Interactive && !selected)
                 {
                     int i = 0;
-                    dfns.ForEach(key => LogColor($"{i++}.{Config.qualitys[key]}"));
+                    dfns.ForEach(key => LogColor($"{i++}.{AppSettings.QualityMap[key]}"));
                     Log("请选择最想要的清晰度(输入序号): ", false);
                     Console.ForegroundColor = ConsoleColor.Cyan;
                     vIndex = ReadIntSafe();
