@@ -19,7 +19,7 @@ public class MediaListFetcher : IFetcher
         var json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
         var root = infoJson.RootElement;
-        var data = root.GetProperty("data");
+        var data = root.GetPropertySafe("data");
         if (data.ValueKind != JsonValueKind.Object)
         {
             // 部分情况下（合集被删除、设为私密或无权访问）data 会是 null
@@ -40,9 +40,9 @@ public class MediaListFetcher : IFetcher
                 throw new InvalidOperationException($"获取合集信息失败(code={code}): {message}");
             }
         }
-        var listTitle = data.GetProperty("title").GetString()!;
-        var intro = data.GetProperty("intro").GetString()!;
-        long pubTime = data.GetProperty("ctime").GetInt64()!;
+        var listTitle = data.GetStringSafe("title")!;
+        var intro = data.GetStringSafe("intro")!;
+        long pubTime = data.GetInt64Safe("ctime");
 
         List<Page> pagesInfo = new();
         bool hasMore = true;
@@ -54,7 +54,7 @@ public class MediaListFetcher : IFetcher
             json = await HTTPUtil.GetWebSourceAsync(listApi);
             using var listJson = JsonDocument.Parse(json);
             var listRoot = listJson.RootElement;
-            data = listRoot.GetProperty("data");
+            data = listRoot.GetPropertySafe("data");
             if (data.ValueKind != JsonValueKind.Object)
             {
                 var code = listRoot.TryGetProperty("code", out var codeElem) && codeElem.ValueKind == JsonValueKind.Number
@@ -65,35 +65,35 @@ public class MediaListFetcher : IFetcher
                     : "未知错误";
                 throw new InvalidOperationException($"获取合集视频列表失败(code={code}): {message}");
             }
-            hasMore = data.GetProperty("has_more").GetBoolean();
-            foreach (var m in data.GetProperty("media_list").EnumerateArray())
+            hasMore = data.GetBooleanSafe("has_more");
+            foreach (var m in data.EnumerateArraySafe("media_list"))
             {
                 // 只处理未失效的视频条目（与收藏夹解析逻辑保持一致）
                 if (m.TryGetProperty("attr", out var attrElem) && attrElem.GetInt32() != 0)
                     continue;
 
-                var pageCount = m.GetProperty("page").GetInt32();
-                var desc = m.GetProperty("intro").GetString()!;
-                var ownerName = m.GetProperty("upper").GetProperty("name").ToString();
-                var ownerMid = m.GetProperty("upper").GetProperty("mid").ToString();
-                foreach (var page in m.GetProperty("pages").EnumerateArray())
+                var pageCount = m.GetInt32Safe("page");
+                var desc = m.GetStringSafe("intro")!;
+                var ownerName = m.GetPropertySafe("upper").GetValueAsStringSafe("name");
+                var ownerMid = m.GetPropertySafe("upper").GetValueAsStringSafe("mid");
+                foreach (var page in m.EnumerateArraySafe("pages"))
                 {
                     Page p = new(index++,
-                        m.GetProperty("id").ToString(),
-                        page.GetProperty("id").ToString(),
+                        m.GetValueAsStringSafe("id"),
+                        page.GetValueAsStringSafe("id"),
                         "", //epid
-                        pageCount == 1 ? m.GetProperty("title").ToString() : $"{m.GetProperty("title")}_P{page.GetProperty("page")}_{page.GetProperty("title")}", //单P使用外层标题 多P则拼接内层子标题
+                        pageCount == 1 ? m.GetValueAsStringSafe("title") : $"{m.GetValueAsStringSafe("title")}_P{page.GetValueAsStringSafe("page")}_{page.GetValueAsStringSafe("title")}", //单P使用外层标题 多P则拼接内层子标题
                         page.TryGetProperty("duration", out var dur) ? dur.GetInt32() : 0,
                         page.TryGetProperty("dimension", out var dim) && dim.TryGetProperty("width", out var w) && dim.TryGetProperty("height", out var h) ? $"{w}x{h}" : "",
-                        m.GetProperty("pubtime").GetInt64(),
-                        m.GetProperty("cover").ToString(),
+                        m.GetInt64Safe("pubtime"),
+                        m.GetValueAsStringSafe("cover"),
                         desc,
                         ownerName,
                         ownerMid);
                     if (!pagesInfo.Contains(p)) pagesInfo.Add(p);
                     else index--;
                 }
-                oid = m.GetProperty("id").ToString();
+                oid = m.GetValueAsStringSafe("id");
             }
         }
 

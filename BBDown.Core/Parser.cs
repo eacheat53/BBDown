@@ -111,28 +111,28 @@ public static partial class Parser
                     parsedResult.WebJsonString = await GetPlayJsonAsync(aid, cid, epId, qn, code);
 
                 using var intlJson = JsonDocument.Parse(parsedResult.WebJsonString);
-                var streamList = intlJson.RootElement.GetProperty("data").GetProperty("video_info").GetProperty("stream_list");
-                int pDur = intlJson.RootElement.GetProperty("data").GetProperty("video_info").GetProperty("timelength").GetInt32() / 1000;
-                var audioElements = intlJson.RootElement.GetProperty("data").GetProperty("video_info").GetProperty("dash_audio").EnumerateArray().ToList();
+                var streamList = intlJson.RootElement.GetPropertySafe("data").GetPropertySafe("video_info").GetPropertySafe("stream_list");
+                int pDur = intlJson.RootElement.GetPropertySafe("data").GetPropertySafe("video_info").GetInt32Safe("timelength") / 1000;
+                var audioElements = intlJson.RootElement.GetPropertySafe("data").GetPropertySafe("video_info").EnumerateArraySafe("dash_audio").ToList();
 
                 foreach (var stream in streamList.EnumerateArray())
                 {
                     if (stream.TryGetProperty("dash_video", out JsonElement dashVideo))
                     {
-                        if (dashVideo.GetProperty("base_url").ToString() != "")
+                        if (dashVideo.GetValueAsStringSafe("base_url") != "")
                         {
-                            var videoId = stream.GetProperty("stream_info").GetProperty("quality").ToString();
-                            var urlList = new List<string>() { dashVideo.GetProperty("base_url").ToString() };
-                            urlList.AddRange(dashVideo.GetProperty("backup_url").EnumerateArray().Select(i => i.ToString()));
+                            var videoId = stream.GetProperty("stream_info").GetValueAsStringSafe("quality");
+                            var urlList = new List<string>() { dashVideo.GetValueAsStringSafe("base_url") };
+                            urlList.AddRange(dashVideo.EnumerateArraySafe("backup_url").Select(i => i.ToString()));
                             Video v = new()
                             {
                                 dur = pDur,
                                 id = videoId,
                                 dfn = AppSettings.QualityMap.GetValueOrDefault(videoId, $"未知({videoId})"),
-                                bandwidth = dashVideo.GetProperty("bandwidth").GetInt64() / 1000,
+                                bandwidth = dashVideo.GetInt64Safe("bandwidth") / 1000,
                                 baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
-                                codecs = GetVideoCodec(dashVideo.GetProperty("codecid").ToString()),
-                                size = dashVideo.TryGetProperty("size", out var sizeNode) ? sizeNode.GetDouble() : 0
+                                codecs = GetVideoCodec(dashVideo.GetValueAsStringSafe("codecid")),
+                                size = dashVideo.GetDoubleSafe("size")
                             };
                             if (!parsedResult.VideoTracks.Contains(v)) parsedResult.VideoTracks.Add(v);
                         }
@@ -141,14 +141,14 @@ public static partial class Parser
 
                 foreach (var node in audioElements)
                 {
-                    var urlList = new List<string>() { node.GetProperty("base_url").ToString() };
-                    urlList.AddRange(node.GetProperty("backup_url").EnumerateArray().Select(i => i.ToString()));
+                    var urlList = new List<string>() { node.GetValueAsStringSafe("base_url") };
+                    urlList.AddRange(node.EnumerateArraySafe("backup_url").Select(i => i.ToString()));
                     Audio a = new()
                     {
-                        id = node.GetProperty("id").ToString(),
-                        dfn = node.GetProperty("id").ToString(),
+                        id = node.GetValueAsStringSafe("id"),
+                        dfn = node.GetValueAsStringSafe("id"),
                         dur = pDur,
-                        bandwidth = node.GetProperty("bandwidth").GetInt64() / 1000,
+                        bandwidth = node.GetInt64Safe("bandwidth") / 1000,
                         baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
                         codecs = "M4A"
                     };
@@ -264,26 +264,26 @@ public static partial class Parser
             {
                 foreach (var node in video)
                 {
-                    var urlList = new List<string>() { node.GetProperty("base_url").ToString() };
+                    var urlList = new List<string>() { node.GetValueAsStringSafe("base_url") };
                     if (node.TryGetProperty("backup_url", out JsonElement element) && element.ValueKind != JsonValueKind.Null)
                     {
                         urlList.AddRange(element.EnumerateArray().Select(i => i.ToString()));
                     }
-                    var videoId = node.GetProperty("id").ToString();
+                    var videoId = node.GetValueAsStringSafe("id");
                     Video v = new()
                     {
                         dur = pDur,
                         id = videoId,
                         dfn = AppSettings.QualityMap.GetValueOrDefault(videoId, $"未知({videoId})"),
-                        bandwidth = node.GetProperty("bandwidth").GetInt64() / 1000,
+                        bandwidth = node.GetInt64Safe("bandwidth") / 1000,
                         baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
-                        codecs = GetVideoCodec(node.GetProperty("codecid").ToString()),
-                        size = node.TryGetProperty("size", out var sizeNode) ? sizeNode.GetDouble() : 0
+                        codecs = GetVideoCodec(node.GetValueAsStringSafe("codecid")),
+                        size = node.GetDoubleSafe("size")
                     };
                     if (!tvApi && !appApi)
                     {
-                        v.res = node.GetProperty("width").ToString() + "x" + node.GetProperty("height").ToString();
-                        v.fps = node.GetProperty("frame_rate").ToString();
+                        v.res = node.GetValueAsStringSafe("width") + "x" + node.GetValueAsStringSafe("height");
+                        v.fps = node.GetValueAsStringSafe("frame_rate");
                     }
                     if (!parsedResult.VideoTracks.Contains(v)) parsedResult.VideoTracks.Add(v);
                 }
@@ -316,13 +316,13 @@ public static partial class Parser
             {
                 foreach (var node in audio)
                 {
-                    var urlList = new List<string>() { node.GetProperty("base_url").ToString() };
+                    var urlList = new List<string>() { node.GetValueAsStringSafe("base_url") };
                     if (node.TryGetProperty("backup_url", out JsonElement element) && element.ValueKind != JsonValueKind.Null)
                     {
                         urlList.AddRange(element.EnumerateArray().Select(i => i.ToString()));
                     }
-                    var audioId = node.GetProperty("id").ToString();
-                    var codecs = node.GetProperty("codecs").ToString();
+                    var audioId = node.GetValueAsStringSafe("id");
+                    var codecs = node.GetValueAsStringSafe("codecs");
                     codecs = codecs switch
                     {
                         "mp4a.40.2" => "M4A",
@@ -337,7 +337,7 @@ public static partial class Parser
                         id = audioId,
                         dfn = audioId,
                         dur = pDur,
-                        bandwidth = node.GetProperty("bandwidth").GetInt64() / 1000,
+                        bandwidth = node.GetInt64Safe("bandwidth") / 1000,
                         baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
                         codecs = codecs
                     });
@@ -348,43 +348,43 @@ public static partial class Parser
             {
                 foreach (var node in backgroundAudio)
                 {
-                    var audioId = node.GetProperty("id").ToString();
-                    var urlList = new List<string> { node.GetProperty("base_url").ToString() };
-                    urlList.AddRange(node.GetProperty("backup_url").EnumerateArray().Select(i => i.ToString()));
+                    var audioId = node.GetValueAsStringSafe("id");
+                    var urlList = new List<string> { node.GetValueAsStringSafe("base_url") };
+                    urlList.AddRange(node.EnumerateArraySafe("backup_url").Select(i => i.ToString()));
                     parsedResult.BackgroundAudioTracks.Add(new Audio()
                     {
                         id = audioId,
                         dfn = audioId,
                         dur = pDur,
-                        bandwidth = node.GetProperty("bandwidth").GetInt64() / 1000,
+                        bandwidth = node.GetInt64Safe("bandwidth") / 1000,
                         baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
-                        codecs = node.GetProperty("codecs").ToString()
+                        codecs = node.GetValueAsStringSafe("codecs")
                     });
                 }
 
                 foreach (var role in roleAudio)
                 {
                     var roleAudioTracks = new List<Audio>();
-                    foreach (var node in role.GetProperty("audio").EnumerateArray())
+                    foreach (var node in role.EnumerateArraySafe("audio"))
                     {
-                        var audioId = node.GetProperty("id").ToString();
-                        var urlList = new List<string> { node.GetProperty("base_url").ToString() };
-                        urlList.AddRange(node.GetProperty("backup_url").EnumerateArray().Select(i => i.ToString()));
+                        var audioId = node.GetValueAsStringSafe("id");
+                        var urlList = new List<string> { node.GetValueAsStringSafe("base_url") };
+                        urlList.AddRange(node.EnumerateArraySafe("backup_url").Select(i => i.ToString()));
                         roleAudioTracks.Add(new Audio()
                         {
                             id = audioId,
                             dfn = audioId,
                             dur = pDur,
-                            bandwidth = node.GetProperty("bandwidth").GetInt64() / 1000,
+                            bandwidth = node.GetInt64Safe("bandwidth") / 1000,
                             baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
-                            codecs = node.GetProperty("codecs").ToString()
+                            codecs = node.GetValueAsStringSafe("codecs")
                         });
                     }
                     parsedResult.RoleAudioList.Add(new AudioMaterialInfo()
                     {
-                        title = role.GetProperty("title").ToString(),
-                        personName = role.GetProperty("person_name").ToString(),
-                        path = $"{aid}/{aid}.{cid}.{role.GetProperty("audio_id").ToString()}.m4a",
+                        title = role.GetValueAsStringSafe("title"),
+                        personName = role.GetValueAsStringSafe("person_name"),
+                        path = $"{aid}/{aid}.{cid}.{role.GetValueAsStringSafe("audio_id")}.m4a",
                         audio = roleAudioTracks
                     });
                 }
@@ -406,19 +406,19 @@ public static partial class Parser
             double size = 0;
             double length = 0;
 
-            quality = root.GetProperty("quality").ToString();
-            videoCodecid = root.GetProperty("video_codecid").ToString();
+            quality = root.GetValueAsStringSafe("quality");
+            videoCodecid = root.GetValueAsStringSafe("video_codecid");
             //获取所有分段
-            foreach (var node in root.GetProperty("durl").EnumerateArray())
+            foreach (var node in root.EnumerateArraySafe("durl"))
             {
-                parsedResult.Clips.Add(node.GetProperty("url").ToString());
-                size += node.GetProperty("size").GetDouble();
-                length += node.GetProperty("length").GetDouble();
+                parsedResult.Clips.Add(node.GetValueAsStringSafe("url"));
+                size += node.GetDoubleSafe("size");
+                length += node.GetDoubleSafe("length");
             }
             //TV模式可用清晰度
             if (root.TryGetProperty("qn_extras", out JsonElement qnExtras))
             {
-                parsedResult.Dfns.AddRange(qnExtras.EnumerateArray().Select(node => node.GetProperty("qn").ToString()));
+                parsedResult.Dfns.AddRange(qnExtras.EnumerateArray().Select(node => node.GetValueAsStringSafe("qn")));
             }
             else if (root.TryGetProperty("accept_quality", out JsonElement acceptQuality)) //非tv模式可用清晰度
             {
@@ -446,9 +446,9 @@ public static partial class Parser
             {
                 parsedResult.ExtraPoints.AddRange(clipList.EnumerateArray().Select(clip => new ViewPoint()
                     {
-                        title = clip.GetProperty("toastText").ToString().Replace("即将跳过", ""),
-                        start = clip.GetProperty("start").GetInt32(),
-                        end = clip.GetProperty("end").GetInt32()
+                        title = clip.GetValueAsStringSafe("toastText").Replace("即将跳过", ""),
+                        start = clip.GetInt32Safe("start"),
+                        end = clip.GetInt32Safe("end")
                     })
                 );
                 parsedResult.ExtraPoints.Sort((p1, p2) => p1.start.CompareTo(p2.start));

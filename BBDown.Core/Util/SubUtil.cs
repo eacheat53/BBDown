@@ -225,11 +225,11 @@ public static partial class SubUtil
             string api = "https://" + (Config.Current.EpHost == "api.bilibili.com" ? "api.biliintl.com" : Config.Current.EpHost) + $"/intl/gateway/web/v2/subtitle?episode_id={epId}";
             string json = await HTTPUtil.GetWebSourceAsync(api);
             using var infoJson = JsonDocument.Parse(json);
-            var subs = infoJson.RootElement.GetProperty("data").GetProperty("subtitles").EnumerateArray();
+            var subs = infoJson.RootElement.GetPropertySafe("data").EnumerateArraySafe("subtitles");
             foreach (var sub in subs)
             {
-                var lan = sub.GetProperty("lang_key").ToString();
-                var url = sub.GetProperty("url").ToString();
+                var lan = sub.GetValueAsStringSafe("lang_key");
+                var url = sub.GetValueAsStringSafe("url");
                 Subtitle subtitle = new()
                 {
                     url = url,
@@ -261,15 +261,15 @@ public static partial class SubUtil
                          $"/intl/gateway/v2/ogv/view/app/season?ep_id={epId}&platform=android&s_locale=zh_SG" + (Config.Current.Token != "" ? $"&access_key={Config.Current.Token}" : "");
             string json = await HTTPUtil.GetWebSourceAsync(api);
             using var infoJson = JsonDocument.Parse(json);
-            var modules = infoJson.RootElement.GetProperty("result").GetProperty("modules");
+            var modules = infoJson.RootElement.GetPropertySafe("result").GetPropertySafe("modules");
             if (modules.GetArrayLength() == 0) return null;
-            var episodes = modules[0].GetProperty("data").GetProperty("episodes");
+            var episodes = modules[0].GetPropertySafe("data").GetPropertySafe("episodes");
             if (index < 1 || index > episodes.GetArrayLength()) return null;
             var subs = episodes[index - 1].GetProperty("subtitles").EnumerateArray();
             foreach (var sub in subs)
             {
-                var lan = sub.GetProperty("key").ToString();
-                var url = sub.GetProperty("url").ToString().Replace("\\\\/", "/");
+                var lan = sub.GetValueAsStringSafe("key");
+                var url = sub.GetValueAsStringSafe("url").Replace("\\\\/", "/");
                 Subtitle subtitle = new()
                 {
                     url = url,
@@ -300,13 +300,13 @@ public static partial class SubUtil
             string api = $"https://api.bilibili.com/x/web-interface/view?aid={aid}&cid={cid}";
             string json = await HTTPUtil.GetWebSourceAsync(api);
             using var infoJson = JsonDocument.Parse(json);
-            var subs = infoJson.RootElement.GetProperty("data").GetProperty("subtitle").GetProperty("list").EnumerateArray();
+            var subs = infoJson.RootElement.GetPropertySafe("data").GetPropertySafe("subtitle").EnumerateArraySafe("list");
             foreach (var sub in subs)
             {
-                var lan = sub.GetProperty("lan").ToString();
+                var lan = sub.GetValueAsStringSafe("lan");
                 Subtitle subtitle = new()
                 {
-                    url = sub.GetProperty("subtitle_url").ToString(),
+                    url = sub.GetValueAsStringSafe("subtitle_url"),
                     lan = lan,
                     path = $"{aid}/{aid}.{cid}.{lan}.srt"
                 };
@@ -339,13 +339,13 @@ public static partial class SubUtil
             string api = $"https://api.bilibili.com/x/player/wbi/v2?cid={cid}&aid={aid}";
             string json = await HTTPUtil.GetWebSourceAsync(api);
             using var infoJson = JsonDocument.Parse(json);
-            var subs = infoJson.RootElement.GetProperty("data").GetProperty("subtitle").GetProperty("subtitles").EnumerateArray();
+            var subs = infoJson.RootElement.GetPropertySafe("data").GetPropertySafe("subtitle").EnumerateArraySafe("subtitles");
             foreach (var sub in subs)
             {
-                var lan = sub.GetProperty("lan").ToString();
+                var lan = sub.GetValueAsStringSafe("lan");
                 Subtitle subtitle = new()
                 {
-                    url = sub.GetProperty("subtitle_url").ToString(),
+                    url = sub.GetValueAsStringSafe("subtitle_url"),
                     lan = lan,
                     path = $"{aid}/{aid}.{cid}.{lan}.srt"
                 };
@@ -461,18 +461,18 @@ public static partial class SubUtil
     {
         StringBuilder lines = new();
         using var json = JsonDocument.Parse(jsonString);
-        var sub = json.RootElement.GetProperty("body").EnumerateArray().ToList();
+        var sub = json.RootElement.EnumerateArraySafe("body").ToList();
         for(int i = 0; i < sub.Count; i++)
         {
             var line = sub[i];
             lines.AppendLine((i + 1).ToString());
             if (line.TryGetProperty("from", out JsonElement from))
             {
-                lines.AppendLine($"{FormatTime(from.GetDouble())} --> {FormatTime(line.GetProperty("to").GetDouble())}");
+                lines.AppendLine($"{FormatTime(from.GetDouble())} --> {FormatTime(line.GetDoubleSafe("to"))}");
             }
             else
             {
-                lines.AppendLine($"{FormatTime(0.0)} --> {FormatTime(line.GetProperty("to").GetDouble())}");
+                lines.AppendLine($"{FormatTime(0.0)} --> {FormatTime(line.GetDoubleSafe("to"))}");
             }
             //有的没有内容
             if (line.TryGetProperty("content", out JsonElement content))
