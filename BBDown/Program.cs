@@ -110,8 +110,7 @@ partial class Program
     internal static void StartServer(string? listenUrl)
     {
         var defaultListenUrl = "http://0.0.0.0:23333";
-        //检测更新
-        _ = BBDownUtil.CheckUpdateAsync();
+        Logger.LogFilePath = Path.Combine(Directory.GetCurrentDirectory(), "bbdown-api.log");
         var server = new BBDownApiServer();
         server.SetUpServer();
         server.Run(string.IsNullOrEmpty(listenUrl) ? defaultListenUrl : listenUrl);
