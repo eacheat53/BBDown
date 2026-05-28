@@ -23,7 +23,12 @@ public class BBDownApiServer
     private readonly object _taskLock = new();
     private readonly List<DownloadTask> runningTasks = [];
     private readonly List<DownloadTask> finishedTasks = [];
-    private readonly SemaphoreSlim _concurrencyLimiter = new(3, 3); // max 3 concurrent downloads
+    private readonly SemaphoreSlim _concurrencyLimiter;
+
+    public BBDownApiServer(int maxConcurrent = 3)
+    {
+        _concurrencyLimiter = new SemaphoreSlim(maxConcurrent, maxConcurrent);
+    }
 
     public void SetUpServer()
     {
