@@ -14,7 +14,13 @@ public partial class NormalInfoFetcher : IFetcher
         string api = $"https://api.bilibili.com/x/web-interface/view?aid={id}";
         string json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
-        var data = infoJson.RootElement.GetProperty("data");
+        int code = infoJson.RootElement.GetInt32Safe("code");
+        if (code != 0)
+        {
+            string msg = infoJson.RootElement.GetStringSafe("message");
+            throw new InvalidOperationException($"获取视频信息失败 (code={code}): {msg}");
+        }
+        var data = infoJson.RootElement.GetPropertySafe("data");
         string title = data.GetStringSafe("title");
         string desc = data.GetStringSafe("desc");
         string pic = data.GetStringSafe("pic");
