@@ -225,6 +225,35 @@ BBDown -app -token "******" "https://www.bilibili.com/video/BV1qt4y1X7TW"
 </details>
 
 <details>
+<summary>Widevine DRM 解密</summary>
+
+---
+
+BBDown 目前以**原生 C#** 实现了 Widevine CDM，可自动获取解密密钥并解密 B站 DRM 保护内容，**无需 Python/pywidevine**。
+
+**准备**
+1. 获取一个 `device.wvd` 文件（Widevine 设备文件，需自行提取或从可信来源获取）
+2. 将 `device.wvd` 放在以下任一位置：
+   - 程序所在目录
+   - 环境变量 `PATH` 中的目录
+   - macOS: `/opt/homebrew/bin` / Linux: `/usr/local/bin` / Windows: 程序目录
+
+**使用**
+```shell
+# 下载 DRM 保护的视频（自动解密）
+BBDown --decrypt-drm "https://www.bilibili.com/cheese/play/ep1243104"
+```
+
+如需手动指定 `device.wvd` 路径，可将其放置在工作目录或 PATH 环境变量中的目录里。
+
+**原理说明**
+- 使用 `drm_tech_type=2` 请求标准 Widevine 流
+- 从 B站许可证服务器获取密钥（兼容性取决于 device.wvd 的 `security_level`）
+- 解密后与普通视频一样进行混流输出
+
+</details>
+
+<details>
 <summary>常用命令</summary>  
 
 ---
