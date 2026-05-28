@@ -79,81 +79,48 @@ Commands:
 
 # TODO
 
-## 🔴 高优先级（安全/稳定性）
+## 已完成 ✅
 
-- [ ] **API 服务器下载任务队列与并发限制**
-  - 现状：`AddDownloadTaskAsync` 被调用后立即启动下载，无上限
-  - 风险：短时间内添加大量任务会耗尽带宽、文件句柄和 B 站 API 配额
-  - 方案：引入 `Channel<DownloadTask>` + `SemaphoreSlim(3)` 消费者池
+- [x] API 服务器下载任务队列限制（`SemaphoreSlim(3)` 并发控制）
+- [x] `HttpClient` DNS 刷新配置（`SocketsHttpHandler.PooledConnectionLifetime = 5min`）
+- [x] `BBDownMuxer.RunExe` 超时机制（30 分钟上限 + 强制终止）
+- [x] 下载目标文件并发排他锁（按路径 `SemaphoreSlim`）
+- [x] 异常粒度精细化（28 处 `Exception` → 语义化类型）
+- [x] 重试策略精细化（指数退避 + 不可重试异常短路）
+
+## 待完成 🔴
 
 - [ ] **下载链路 CancellationToken 贯通**
-  - 现状：路由 handler 虽有 `CancellationToken` 参数，但 `DownloadFileAsync` → `RangeDownloadToTmpAsync` → `stream.ReadAsync` 从未传入
-  - 风险：CLI `Ctrl+C` 后下载继续；API 任务一旦提交无法取消
-  - 方案：将 `token` 从 API 路由一路穿透到 `HttpClient.SendAsync` 和 `stream.ReadAsync`
+  - 现状：`CancellationToken` 参数存在但从未传入 `HttpClient.SendAsync` 和 `stream.ReadAsync`
+  - 影响：CLI `Ctrl+C` 后下载继续；API 任务无法取消
 
 - [ ] **Config 全局静态可变状态重构**
-  - 现状：`Config.COOKIE/TOKEN/HOST/DEBUG_LOG` 全部为 `public static` 可写
-  - 风险：API 服务器并发任务互相覆盖凭据；单元测试无法并行
-  - 方案：引入 `DownloadContext`（或 `AsyncLocal<DownloadContext>`），将凭据移到每次请求上下文
-
-- [ ] **HttpClient DNS 刷新配置**
-  - 现状：`HTTPUtil.AppHttpClient` 单例未设置 `PooledConnectionLifetime`
-  - 风险：长期运行的 API 服务器在 B 站 CDN IP 变化后仍使用旧连接
-  - 方案：`handler.PooledConnectionLifetime = TimeSpan.FromMinutes(5)`
-
-- [ ] **BBDownMuxer.RunExe 超时机制**
-  - 现状：`p.WaitForExit()` 永久阻塞，FFmpeg/MP4Box 死循环时任务挂死
-  - 风险：API 服务器出现"僵尸任务"，永不超时
-  - 方案：`WaitForExit(TimeSpan)` + `Kill()` + 抛 `TimeoutException`
-
-- [ ] **下载目标文件并发排他锁**
-  - 现状：两个 API 任务同时下载到同一 savePath 时 `FileStream` 直接冲突
-  - 风险：并发任务可能产生损坏的 MP4
-  - 方案：下载前以 `FileShare.None` 锁定 `.lock` 文件
-
-## 🟡 中优先级（可靠性/可维护性）
-
-- [ ] **异常粒度精细化**
-  - 现状：`BBDownDownloadUtil`、多个 `Fetcher`、`BBDownUtil` 中大量使用裸 `Exception`
-  - 风险：调用方无法根据异常类型精准处理，只能字符串匹配
-  - 方案：替换为语义化异常（`HttpRequestException`、`InvalidOperationException`、自定义异常）
+  - 现状：`Config.COOKIE/TOKEN/HOST` 全部为 `public static` 可写
+  - 影响：API 并发任务互相覆盖凭据；单元测试无法并行
 
 - [ ] **.tmp 文件断点续传**
-  - 现状：下载使用 `.tmp` 后缀，崩溃后残留文件不被识别，从头开始
-  - 影响：大文件下载中断后浪费流量
-  - 方案：启动时扫描 `.tmp`，校验 `Content-Length` 匹配则继续（range download 已支持 resume）
+  - 现状：崩溃后 `.tmp` 残留文件不被识别，从头开始
+  - 影响：大文件下载中断浪费流量
 
 - [ ] **日志系统适配 API 服务器**
-  - 现状：`Logger` 直接写 `Console`，后台/Docker 模式下进度条污染日志
-  - 影响：API 服务器运维可观测性极差
-  - 方案：`Logger` 改为事件驱动（`Action<LogLevel, string>`），CLI 绑定 Console，API 绑定 `ILogger`
+  - 现状：`Logger` 直接写 `Console`，后台/Docker 模式污染日志
+  - 影响：API 服务器运维可观测性差
 
 - [ ] **JSON 解析统一错误包装**
-  - 现状：`NormalInfoFetcher`、`Parser` 等大量直接 `root.GetProperty("data").GetProperty(...)`
-  - 风险：缺失属性直接抛 `KeyNotFoundException`，无上下文信息
-  - 方案：封装带路径信息的安全访问器，如 `TryGetString(root, "data", "list", "vlist")`
-
-- [ ] **重试策略精细化**
-  - 现状：代码中散落 `retry < 3` + `Task.Delay(3000)`，固定间隔且不区分异常类型
-  - 方案：`HttpRequestException`/`TimeoutException` 用指数退避；`ArgumentException` 立即失败
-
-## 🟢 低优先级（工程化/体验）
+  - 现状：`GetProperty` 链式调用缺失属性直接抛 `KeyNotFoundException`
+  - 影响：无上下文信息，难定位问题字段
 
 - [ ] **自动刷新 cookie**
   - 现状：cookie 过期后需手动重新 `BBDown login`
-  - 方案：检测 401/未登录响应后自动尝试刷新 SESSDATA
 
 - [ ] **支持更多自定义选项**
-  - 现状：部分参数硬编码（如超时时间、并发数）
-  - 方案：暴露更多 tunable 参数到 CLI 和配置文件
+  - 现状：部分参数硬编码（超时时间、并发数）
 
 - [ ] **零测试覆盖 → 单元测试骨架**
-  - 现状：没有任何单元测试、集成测试或 mock 测试
-  - 方案：添加 `BBDown.Tests` 项目，优先覆盖 `GetAvIdAsync`、`BBDownConfigParser`、`EscapeString`、`GetValidFileName`
+  - 现状：无任何单元测试、集成测试或 mock 测试
 
 - [ ] **拆分下载/解析核心方法**
   - 现状：`DownloadPagesAsync`、`Workflow.cs` 等方法过长，职责混杂
-  - 方案：进一步拆分为更小、可测试的单元方法
 
 # 使用教程
 
