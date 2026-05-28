@@ -96,12 +96,11 @@ Commands:
 - [x] 拆分下载/解析核心方法（`UrlResolver.cs` / `ExternalToolHelper.cs`）
 - [x] API 并发数自定义（`--max-concurrent` 选项暴露 API 服务器并发限制）
 - [x] Cookie 过期检测与明确提示（区分 "未登录" vs "Cookie 已过期"）
+- [x] JSON 解析统一错误包装（`JsonElementExtensions` + 全项目 200+ 处调用迁移至 safe accessor）
 
 ## 待完成 🔴
 
-- [ ] **JSON 解析统一错误包装**
-  - 现状：`JsonElementExtensions` 已建立，`NormalInfoFetcher` / `FavListFetcher` 已应用，其余 ~170 处调用待逐步迁移
-  - 影响：无上下文信息，难定位问题字段
+_当前所有高优先级 TODO 已完成。后续可继续优化单元测试覆盖率、增加更多 CLI/HTTP 自定义参数等。_
 
 # 使用教程
 
