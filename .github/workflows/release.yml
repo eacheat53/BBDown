@@ -161,31 +161,51 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      - name: Extract version changelog
+        id: changelog
+        run: |
+          TAG="${{ github.ref_name }}"
+          VERSION="${TAG#v}"
+          NOTES=$(sed -n "/^## \\[$VERSION\\]/,/^## \\[/p" CHANGELOG.md | sed '$d')
+          if [ -z "$NOTES" ]; then
+            NOTES="详见 [CHANGELOG.md](./CHANGELOG.md)"
+          fi
+          {
+            echo "content<<EOF"
+            echo "$NOTES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Generate release notes
         id: notes
         run: |
           TAG="${{ github.ref_name }}"
           PREV_TAG=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || echo "")
-          echo "release_notes<<EOF" >> "$GITHUB_OUTPUT"
-          echo "## What's Changed" >> "$GITHUB_OUTPUT"
-          if [ -n "$PREV_TAG" ]; then
-            echo "" >> "$GITHUB_OUTPUT"
-            git log --pretty=format:'- %s by @%an in %h' --no-merges "$PREV_TAG..$TAG" >> "$GITHUB_OUTPUT"
-          else
-            echo "" >> "$GITHUB_OUTPUT"
-            echo "Initial release." >> "$GITHUB_OUTPUT"
-          fi
-          echo "" >> "$GITHUB_OUTPUT"
-          echo "## Downloads" >> "$GITHUB_OUTPUT"
-          echo "" >> "$GITHUB_OUTPUT"
-          echo "| Platform | Architecture |" >> "$GITHUB_OUTPUT"
-          echo "|----------|-------------|" >> "$GITHUB_OUTPUT"
-          echo "| Windows  | x64, arm64  |" >> "$GITHUB_OUTPUT"
-          echo "| Linux    | x64, arm64  |" >> "$GITHUB_OUTPUT"
-          echo "| macOS    | x64, arm64  |" >> "$GITHUB_OUTPUT"
-          echo "" >> "$GITHUB_OUTPUT"
-          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG:-HEAD}...$TAG" >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          {
+            echo "release_notes<<EOF"
+            echo "${{ steps.changelog.outputs.content }}"
+            echo ""
+            echo "---"
+            echo ""
+            echo "## What's Changed"
+            echo ""
+            if [ -n "$PREV_TAG" ]; then
+              git log --pretty=format:'- %s by @%an in %h' --no-merges "$PREV_TAG..$TAG"
+            else
+              echo "Initial release."
+            fi
+            echo ""
+            echo "## Downloads"
+            echo ""
+            echo "| Platform | Architecture |"
+            echo "|----------|-------------|"
+            echo "| Windows  | x64, arm64  |"
+            echo "| Linux    | x64, arm64  |"
+            echo "| macOS    | x64, arm64  |"
+            echo ""
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG:-HEAD}...$TAG"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -196,5 +216,6 @@ jobs:
           prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
             artifacts/*.zip
+            CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
