@@ -107,11 +107,11 @@ partial class Program
         return await app.RunAsync(mergedArgs);
     }
 
-    internal static void StartServer(string? listenUrl)
+    internal static void StartServer(string? listenUrl, int maxConcurrent = 3)
     {
         var defaultListenUrl = "http://0.0.0.0:23333";
         Logger.LogFilePath = Path.Combine(Directory.GetCurrentDirectory(), "bbdown-api.log");
-        var server = new BBDownApiServer();
+        var server = new BBDownApiServer(maxConcurrent);
         server.SetUpServer();
         server.Run(string.IsNullOrEmpty(listenUrl) ? defaultListenUrl : listenUrl);
     }
