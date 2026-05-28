@@ -1,7 +1,6 @@
 ﻿using BBDown.Core.Entity;
 using BBDown.Core.Util;
 using System.Text.Json;
-using static BBDown.Core.Util.PathUtil;
 
 namespace BBDown.Core.Fetcher;
 
@@ -13,7 +12,7 @@ public class SpaceVideoFetcher : IFetcher
         // using the live API can bypass w_rid
         string userInfoApi = $"https://api.live.bilibili.com/live_user/v1/Master/info?uid={id}";
         using var userDoc = JsonDocument.Parse(await HTTPUtil.GetWebSourceAsync(userInfoApi));
-        string userName = GetValidFileName(userDoc.RootElement.GetProperty("data").GetProperty("info").GetProperty("uname").ToString(), filterSlash: true);
+        string userName = PathUtil.GetValidFileName(userDoc.RootElement.GetProperty("data").GetProperty("info").GetProperty("uname").ToString(), filterSlash: true);
         List<string> urls = new();
         int pageSize = 50;
         int pageNumber = 1;
