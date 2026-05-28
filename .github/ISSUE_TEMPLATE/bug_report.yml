@@ -35,7 +35,7 @@ body:
     id: dotnet
     attributes:
       label: .NET 运行时版本（如已知）
-      placeholder: "例如: net9.0"
+      placeholder: "例如: net10.0"
 
   - type: textarea
     id: command
