@@ -6,6 +6,11 @@
 
 ### 新增
 
+- **原生 C# Widevine DRM 解密**（完全替代 Python/pywidevine 依赖）
+  - 实现 `WidevineCrypto.AesCmac` + `derive_keys` / `derive_context` 密钥派生
+  - 完整的 HMAC-SHA256 签名校验 + AES 内容密钥解密
+  - V2 WVD 格式支持 + B站服务证书 PKCS#1 公钥兼容
+- GitHub Release 自动化工作流（推送 `v*` tag 自动构建 6 平台并创建 Release）
 - API 服务器并发数自定义：`BBDown serve --max-concurrent <n>`
 - CLI 自定义参数：
   - `--muxer-timeout <分钟>` — 混流超时（默认 30）
@@ -22,6 +27,7 @@
 
 ### 变更
 
+- **目标框架升级：.NET 9 → .NET 10**
 - 升级依赖：QRCoder 1.6.0 → 1.8.0
 - 升级依赖：Google.Protobuf 3.28.3 → 3.34.1
 - 升级依赖：Grpc.Tools 2.67.0 → 2.80.0
@@ -30,9 +36,13 @@
 - `HttpClient` 连接池刷新：`SocketsHttpHandler.PooledConnectionLifetime = 5min`
 - 规范化 API 文档文件名：`json-api-doc.md` → `API.md`
 - 重试策略精细化：指数退避 + 不可重试异常短路（`ArgumentException` / `InvalidOperationException` / `NotSupportedException`）
+- 清理冗余 NuGet 引用：`Microsoft.Extensions.DependencyInjection`（已由 `Microsoft.NET.Sdk.Web` 隐式提供）
 
 ### 修复
 
+- **API server `dotnet run` 端口劫持**：移除 `launchSettings.json`，`serve --listen` 现在正确绑定自定义地址
+- **Widevine proto 协议合规**：字段编号与 Google 标准对齐（`pssh_data=1`、`RequestType` 枚举、`key_control_nonce=uint32`）
+- **Native AOT 运行时崩溃**：`MyOption` / `CommandSettings` / `Command` 类添加 `[DynamicallyAccessedMembers]` + `<TrimmerRootAssembly Include="BBDown" />`
 - Windows 下 FFmpeg/MP4Box 混流时弹出命令行窗口（`CreateNoWindow = true`）
 - 跨平台目录创建逻辑（`Path.GetDirectoryName` 替代 `Contains('/')`）
 - 下载重试时的异常信息丢失问题（增加 `LogDebug`）
