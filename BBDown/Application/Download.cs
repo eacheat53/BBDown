@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
 using static BBDown.BBDownUtil;
 using static BBDown.ExternalToolHelper;
-using static BBDown.BBDownDownloadUtil;
 using BBDown.Core;
 using BBDown.Core.Entity;
 using System.Text.Json;
@@ -111,7 +110,7 @@ internal partial class Program
                 }
                 if (!myOption.SkipCover && !myOption.SubOnly && !File.Exists(coverPath) && !myOption.DanmakuOnly && !myOption.CoverOnly)
                 {
-                    await DownloadFileAsync(pic == "" ? p.cover! : pic, coverPath, new DownloadConfig());
+                    await BBDownDownloadUtil.DownloadFileAsync(pic == "" ? p.cover! : pic, coverPath, new BBDownDownloadUtil.DownloadConfig());
                 }
 
                 if (!myOption.SkipSubtitle && !myOption.DanmakuOnly && !myOption.CoverOnly)
@@ -167,7 +166,7 @@ internal partial class Program
 
             var savePath = "";
 
-            var downloadConfig = new DownloadConfig()
+            var downloadConfig = new BBDownDownloadUtil.DownloadConfig()
             {
                 UseAria2c = myOption.UseAria2c,
                 Aria2cArgs = myOption.Aria2cArgs,
@@ -246,7 +245,7 @@ internal partial class Program
                     var danmakuAssPath = Path.ChangeExtension(savePath, ".ass");
                     Logger.Log("正在下载弹幕Xml文件");
                     var danmakuUrl = $"https://comment.bilibili.com/{p.cid}.xml";
-                    await DownloadFileAsync(danmakuUrl, danmakuXmlPath, downloadConfig);
+                    await BBDownDownloadUtil.DownloadFileAsync(danmakuUrl, danmakuXmlPath, downloadConfig);
                     var danmakus = DanmakuUtil.ParseXml(danmakuXmlPath);
                     if (danmakus == null)
                     {
@@ -284,7 +283,7 @@ internal partial class Program
                 {
                     var coverUrl = pic == "" ? p.cover! : pic;
                     var newCoverPath = Path.ChangeExtension(savePath, Path.GetExtension(coverUrl));
-                    await DownloadFileAsync(coverUrl, newCoverPath, downloadConfig);
+                    await BBDownDownloadUtil.DownloadFileAsync(coverUrl, newCoverPath, downloadConfig);
                     if (Directory.Exists(p.aid) && Directory.GetFiles(p.aid).Length == 0) Directory.Delete(p.aid, true);
                     relatedTask?.SavePaths.Add(newCoverPath);
                 }

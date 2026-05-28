@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using BBDown.Core;
 using BBDown.Core.Entity;
-using static BBDown.BBDownDownloadUtil;
 
 using BBDown.Core.Util;
 using System.Text.Json;
