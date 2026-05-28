@@ -52,7 +52,7 @@ public static class HTTPUtil
 
     public static string UserAgent { get; set; } = GetRandomUserAgent();
 
-    public static async Task<string> GetWebSourceAsync(string url, string? userAgent = null)
+    public static async Task<string> GetWebSourceAsync(string url, string? userAgent = null, CancellationToken token = default)
     {
         using var webRequest = new HttpRequestMessage(HttpMethod.Get, url);
         webRequest.Headers.TryAddWithoutValidation("User-Agent", userAgent ?? UserAgent);
@@ -66,15 +66,15 @@ public static class HTTPUtil
         webRequest.Headers.Connection.Clear();
 
         LogDebug("获取网页内容: Url: {0}, Headers: {1}", url, webRequest.Headers);
-        using var webResponse = (await AppHttpClient.SendAsync(webRequest, HttpCompletionOption.ResponseHeadersRead)).EnsureSuccessStatusCode();
+        using var webResponse = (await AppHttpClient.SendAsync(webRequest, HttpCompletionOption.ResponseHeadersRead, token)).EnsureSuccessStatusCode();
 
-        string htmlCode = await webResponse.Content.ReadAsStringAsync();
+        string htmlCode = await webResponse.Content.ReadAsStringAsync(token);
         LogDebug("Response: {0}", htmlCode);
         return htmlCode;
     }
 
     // 重写重定向处理, 自动跟随多次重定向
-    public static async Task<string> GetWebLocationAsync(string url)
+    public static async Task<string> GetWebLocationAsync(string url, CancellationToken token = default)
     {
         // 先尝试 HEAD，部分服务器不支持则 fallback 到 GET
         foreach (var method in new[] { HttpMethod.Head, HttpMethod.Get })
@@ -88,7 +88,7 @@ public static class HTTPUtil
                 webRequest.Headers.Connection.Clear();
 
                 LogDebug("获取网页重定向地址(method={1}): Url: {0}", url, method);
-                using var webResponse = (await AppHttpClient.SendAsync(webRequest, HttpCompletionOption.ResponseHeadersRead)).EnsureSuccessStatusCode();
+                using var webResponse = (await AppHttpClient.SendAsync(webRequest, HttpCompletionOption.ResponseHeadersRead, token)).EnsureSuccessStatusCode();
                 string location = webResponse.RequestMessage?.RequestUri?.AbsoluteUri ?? url;
                 LogDebug("Location: {0}", location);
                 return location;
@@ -102,7 +102,7 @@ public static class HTTPUtil
         return url; // fallback: return original URL
     }
 
-    public static async Task<byte[]> GetPostResponseAsync(string Url, byte[] postData, Dictionary<string, string>? headers = null)
+    public static async Task<byte[]> GetPostResponseAsync(string Url, byte[] postData, Dictionary<string, string>? headers = null, CancellationToken token = default)
     {
         LogDebug("Post to: {0}, data: {1}", Url, Convert.ToBase64String(postData));
 
@@ -128,8 +128,8 @@ public static class HTTPUtil
             request.Headers.TryAddWithoutValidation("grpc-encoding", "gzip");
         }
 
-        using HttpResponseMessage response = await AppHttpClient.SendAsync(request);
-        byte[] bytes = await response.Content.ReadAsByteArrayAsync();
+        using HttpResponseMessage response = await AppHttpClient.SendAsync(request, token);
+        byte[] bytes = await response.Content.ReadAsByteArrayAsync(token);
 
         return bytes;
     }
