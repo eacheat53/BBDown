@@ -116,13 +116,14 @@ partial class Program
         server.Run(string.IsNullOrEmpty(listenUrl) ? defaultListenUrl : listenUrl);
     }
 
-    internal static async Task DoWorkAsync(MyOption myOption)
+    internal static async Task DoWorkAsync(MyOption myOption, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var (encodingPriority, dfnPriority, firstEncoding, downloadDanmaku, downloadDanmakuFormats,
             input, savePathFormat, lang, aidOri, delay) = SetUpWork(myOption);
         var (fetchedAid, vInfo, apiType) = await GetVideoInfoAsync(myOption, aidOri, input);
         await DownloadPagesAsync(myOption, vInfo, encodingPriority, dfnPriority, firstEncoding, downloadDanmaku, downloadDanmakuFormats,
-            input, savePathFormat, lang, fetchedAid, delay, apiType);
+            input, savePathFormat, lang, fetchedAid, delay, apiType, cancellationToken: cancellationToken);
     }
 
 }
