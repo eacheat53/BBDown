@@ -1,4 +1,5 @@
 ﻿using BBDown.Core.Entity;
+using BBDown.Core.Util;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -15,16 +16,16 @@ public partial class NormalInfoFetcher : IFetcher
         string json = await GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
         var data = infoJson.RootElement.GetProperty("data");
-        string title = data.GetProperty("title").ToString();
-        string desc = data.GetProperty("desc").ToString();
-        string pic = data.GetProperty("pic").ToString();
-        var owner = data.GetProperty("owner");
-        string ownerMid = owner.GetProperty("mid").ToString();
-        string ownerName = owner.GetProperty("name").ToString();
-        long pubTime = data.GetProperty("pubdate").GetInt64();
+        string title = data.GetStringSafe("title");
+        string desc = data.GetStringSafe("desc");
+        string pic = data.GetStringSafe("pic");
+        var owner = data.GetPropertySafe("owner");
+        string ownerMid = owner.GetStringSafe("mid");
+        string ownerName = owner.GetStringSafe("name");
+        long pubTime = data.GetInt64Safe("pubdate");
         bool bangumi = false;
-        var bvid = data.GetProperty("bvid").ToString();
-        var cid = data.GetProperty("cid").GetInt64();
+        var bvid = data.GetStringSafe("bvid");
+        var cid = data.GetInt64Safe("cid");
 
         // 互动视频 1:是 0:否
         var isSteinGate = data.TryGetProperty("rights", out var rights) && rights.TryGetProperty("is_stein_gate", out var sg) ? sg.GetInt16() : (short)0;
