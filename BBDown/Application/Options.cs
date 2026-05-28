@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
 using static BBDown.BBDownUtil;
+using static BBDown.ExternalToolHelper;
 using static BBDown.Core.Logger;
 using System.Linq;
 using System.Text.RegularExpressions;

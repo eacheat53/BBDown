@@ -37,7 +37,7 @@ partial class Program
         {
             return ts == 0 ? "null" : DateTimeOffset.FromUnixTimeSeconds(ts).ToLocalTime().ToString(format);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is ArgumentOutOfRangeException or FormatException)
         {
             LogError($"格式化日期出错: {ex.Message}");
             return ts.ToString();
@@ -81,7 +81,9 @@ partial class Program
             Config.DEBUG_LOG = true;
         }
 
-        var app = new CommandApp<DefaultCommand>();
+        var services = new ServiceCollection();
+        var registrar = new TypeRegistrar(services);
+        var app = new CommandApp<DefaultCommand>(registrar);
         app.Configure(config =>
         {
             config.SetApplicationName("BBDown");
@@ -121,24 +123,11 @@ partial class Program
 
     internal static async Task DoWorkAsync(MyOption myOption)
     {
-        try
-        {
-            var (encodingPriority, dfnPriority, firstEncoding, downloadDanmaku, downloadDanmakuFormats,
-                input, savePathFormat, lang, aidOri, delay) = SetUpWork(myOption);
-            var (fetchedAid, vInfo, apiType) = await GetVideoInfoAsync(myOption, aidOri, input);
-            await DownloadPagesAsync(myOption, vInfo, encodingPriority, dfnPriority, firstEncoding, downloadDanmaku, downloadDanmakuFormats,
-                input, savePathFormat, lang, fetchedAid, delay, apiType);
-        }
-        catch (Exception e)
-        {
-            Console.BackgroundColor = ConsoleColor.Red;
-            Console.ForegroundColor = ConsoleColor.White;
-            var msg = Config.DEBUG_LOG ? e.ToString() : e.Message;
-            Console.Write($"{msg}{Environment.NewLine}请尝试升级到最新版本后重试!");
-            Console.ResetColor();
-            Console.WriteLine();
-            Environment.ExitCode = 1;
-        }
+        var (encodingPriority, dfnPriority, firstEncoding, downloadDanmaku, downloadDanmakuFormats,
+            input, savePathFormat, lang, aidOri, delay) = SetUpWork(myOption);
+        var (fetchedAid, vInfo, apiType) = await GetVideoInfoAsync(myOption, aidOri, input);
+        await DownloadPagesAsync(myOption, vInfo, encodingPriority, dfnPriority, firstEncoding, downloadDanmaku, downloadDanmakuFormats,
+            input, savePathFormat, lang, fetchedAid, delay, apiType);
     }
 
 }

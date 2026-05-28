@@ -16,7 +16,7 @@ using static BBDown.Core.Util.HTTPUtil;
 
 namespace BBDown;
 
-static partial class BBDownUtil
+public static partial class BBDownUtil
 {
     public static async Task CheckUpdateAsync()
     {
@@ -32,7 +32,7 @@ static partial class BBDownUtil
                 LogColor($"发现新版本：{latestVer}");
             }
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException)
         {
             LogDebug("检查更新失败: {0}", ex.Message);
         }
@@ -260,7 +260,7 @@ static partial class BBDownUtil
             string location = await GetWebLocationAsync(api);
             return location.Contains("/ep") ? $"ep:{EpRegex().Match(location).Groups[1].Value}" : avid;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException)
         {
             LogDebug("FixAvidAsync HEAD 请求失败: {0}", ex.Message);
             return avid;
@@ -462,39 +462,7 @@ static partial class BBDownUtil
         return sb;
     }
 
-    /// <summary>
-    /// 检测ffmpeg是否识别杜比视界
-    /// </summary>
-    /// <returns></returns>
-    public static bool CheckFFmpegDOVI()
-    {
-        try
-        {
-            using var process = new Process();
-            process.StartInfo.FileName = BBDownMuxer.FFMPEG;
-            process.StartInfo.Arguments = "-version";
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.RedirectStandardError = true;
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.CreateNoWindow = true;
-            process.Start();
-            string info = process.StandardOutput.ReadToEnd() + Environment.NewLine + process.StandardError.ReadToEnd();
-            process.WaitForExit();
-            var match = LibavutilRegex().Match(info);
-            if (!match.Success) return false;
-            int major = Convert.ToInt32(match.Groups[1].Value);
-            int minor = Convert.ToInt32(match.Groups[2].Value);
-            if (major > 57 || (major == 57 && minor >= 17))
-            {
-                return true;
-            }
-        }
-        catch (Exception ex)
-        {
-            LogDebug("检测ffmpeg版本失败: {0}", ex.Message);
-        }
-        return false;
-    }
+
 
     /// <summary>
     /// 获取章节信息
@@ -523,7 +491,7 @@ static partial class BBDownUtil
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
             LogDebug("获取章节信息失败: {0}", ex.Message);
         }
@@ -567,13 +535,7 @@ static partial class BBDownUtil
         return sb.ToString();
     }
 
-    public static string? FindExecutable(string name)
-    {
-        var fileExt = OperatingSystem.IsWindows() ? ".exe" : "";
-        var searchPath = new [] { Environment.CurrentDirectory, Program.APP_DIR };
-        var envPath = Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator) ?? [];
-        return searchPath.Concat(envPath).Select(p => Path.Combine(p, name + fileExt)).FirstOrDefault(File.Exists);
-    }
+
 
     public static string RSubString(string sub)
     {
@@ -612,7 +574,7 @@ static partial class BBDownUtil
             LogDebug("wbi: {0}", Core.Config.WBI);
             return is_login;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
             LogDebug("检测登录状态失败: {0}", ex.Message);
             return false;
@@ -640,5 +602,5 @@ static partial class BBDownUtil
     [GeneratedRegex("(^|&)?(\\w+)=([^&]+)(&|$)?", RegexOptions.Compiled)]
     private static partial Regex QueryRegex();
     [GeneratedRegex("libavutil\\s+(\\d+)\\. +(\\d+)\\.")]
-    private static partial Regex LibavutilRegex();
+    internal static partial Regex LibavutilRegex();
 }

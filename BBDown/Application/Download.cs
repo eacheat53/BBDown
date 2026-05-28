@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
 using static BBDown.BBDownUtil;
+using static BBDown.ExternalToolHelper;
 using static BBDown.BBDownDownloadUtil;
 using static BBDown.Core.Parser;
 using static BBDown.Core.Logger;
@@ -503,7 +504,7 @@ internal partial class Program
             }
             break; // success, exit retry loop
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or IOException or InvalidOperationException)
         {
             retryCount++;
             if (retryCount >= 3) throw;
