@@ -14,24 +14,24 @@ public class CheeseInfoFetcher : IFetcher
         string api = $"https://api.bilibili.com/pugv/view/web/season?ep_id={id}";
         string json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
-        var data = infoJson.RootElement.GetProperty("data");
-        string cover = data.GetProperty("cover").ToString();
-        string title = data.GetProperty("title").ToString();
-        string desc = data.GetProperty("subtitle").ToString();
-        string ownerName = data.GetProperty("up_info").GetProperty("uname").ToString();
-        string ownerMid = data.GetProperty("up_info").GetProperty("mid").ToString();
-        var pages = data.GetProperty("episodes").EnumerateArray();
+        var data = infoJson.RootElement.GetPropertySafe("data");
+        string cover = data.GetValueAsStringSafe("cover");
+        string title = data.GetValueAsStringSafe("title");
+        string desc = data.GetValueAsStringSafe("subtitle");
+        string ownerName = data.GetPropertySafe("up_info").GetValueAsStringSafe("uname");
+        string ownerMid = data.GetPropertySafe("up_info").GetValueAsStringSafe("mid");
+        var pages = data.EnumerateArraySafe("episodes");
         List<Page> pagesInfo = new();
         foreach (var page in pages)
         {
-            Page p = new(page.GetProperty("index").GetInt32(),
-                page.GetProperty("aid").ToString(),
-                page.GetProperty("cid").ToString(),
-                page.GetProperty("id").ToString(),
-                page.GetProperty("title").ToString().Trim(),
-                page.GetProperty("duration").GetInt32(),
+            Page p = new(page.GetInt32Safe("index"),
+                page.GetValueAsStringSafe("aid"),
+                page.GetValueAsStringSafe("cid"),
+                page.GetValueAsStringSafe("id"),
+                page.GetValueAsStringSafe("title").Trim(),
+                page.GetInt32Safe("duration"),
                 "",
-                page.GetProperty("release_date").GetInt64(),
+                page.GetInt64Safe("release_date"),
                 "",
                 "",
                 ownerName,

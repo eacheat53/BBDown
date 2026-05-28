@@ -19,10 +19,10 @@ public partial class IntlBangumiInfoFetcher : IFetcher
         using var infoJson = JsonDocument.Parse(json);
         if (!infoJson.RootElement.TryGetProperty("result", out var result))
             throw new KeyNotFoundException("Intl Bangumi API response missing 'result' node");
-        string seasonId = result.GetProperty("season_id").ToString();
-        string cover = result.GetProperty("cover").ToString();
-        string title = result.GetProperty("title").ToString();
-        string desc = result.GetProperty("evaluate").ToString();
+        string seasonId = result.GetValueAsStringSafe("season_id");
+        string cover = result.GetValueAsStringSafe("cover");
+        string title = result.GetValueAsStringSafe("title");
+        string desc = result.GetValueAsStringSafe("evaluate");
 
 
         if (cover == "")
@@ -34,13 +34,13 @@ public partial class IntlBangumiInfoFetcher : IFetcher
                 Regex regex = StateRegex();
                 string _json = regex.Match(web).Groups[1].Value;
                 using var _tempJson = JsonDocument.Parse(_json);
-                cover = _tempJson.RootElement.GetProperty("mediaInfo").GetProperty("cover").ToString();
-                title = _tempJson.RootElement.GetProperty("mediaInfo").GetProperty("title").ToString();
-                desc = _tempJson.RootElement.GetProperty("mediaInfo").GetProperty("evaluate").ToString();
+                cover = _tempJson.RootElement.GetPropertySafe("mediaInfo").GetValueAsStringSafe("cover");
+                title = _tempJson.RootElement.GetPropertySafe("mediaInfo").GetValueAsStringSafe("title");
+                desc = _tempJson.RootElement.GetPropertySafe("mediaInfo").GetValueAsStringSafe("evaluate");
             }
         }
 
-        string pubTimeStr = result.GetProperty("publish").GetProperty("pub_time").ToString();
+        string pubTimeStr = result.GetPropertySafe("publish").GetValueAsStringSafe("pub_time");
         long pubTime = string.IsNullOrEmpty(pubTimeStr) ? 0 : DateTimeOffset.ParseExact(pubTimeStr, "yyyy-MM-dd HH:mm:ss", null).ToUnixTimeSeconds();
         var pages = new List<JsonElement>();
         if (result.TryGetProperty("episodes", out JsonElement episodes))
@@ -107,14 +107,14 @@ public partial class IntlBangumiInfoFetcher : IFetcher
             {
                 res = $"{w}x{h}";
             }
-            string _title = page.GetProperty("title").ToString();
+            string _title = page.GetValueAsStringSafe("title");
             if (page.TryGetProperty("long_title", out var lt) && lt.ValueKind != JsonValueKind.Null)
                 _title += " " + lt.ToString();
             _title = _title.Trim();
             Page p = new(i++,
-                page.GetProperty("aid").ToString(),
-                page.GetProperty("cid").ToString(),
-                page.GetProperty("id").ToString(),
+                page.GetValueAsStringSafe("aid"),
+                page.GetValueAsStringSafe("cid"),
+                page.GetValueAsStringSafe("id"),
                 _title,
                 0, res,
                 page.TryGetProperty("pub_time", out JsonElement pub_time) ? pub_time.GetInt64() : 0);

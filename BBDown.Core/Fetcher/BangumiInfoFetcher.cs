@@ -16,12 +16,12 @@ public class BangumiInfoFetcher : IFetcher
         using var infoJson = JsonDocument.Parse(json);
         if (!infoJson.RootElement.TryGetProperty("result", out var result))
             throw new KeyNotFoundException("Bangumi API response missing 'result' node");
-        string cover = result.GetProperty("cover").ToString();
-        string title = result.GetProperty("title").ToString();
-        string desc = result.GetProperty("evaluate").ToString();
-        string pubTimeStr = result.GetProperty("publish").GetProperty("pub_time").ToString();
+        string cover = result.GetValueAsStringSafe("cover");
+        string title = result.GetValueAsStringSafe("title");
+        string desc = result.GetValueAsStringSafe("evaluate");
+        string pubTimeStr = result.GetPropertySafe("publish").GetValueAsStringSafe("pub_time");
         long pubTime = string.IsNullOrEmpty(pubTimeStr) ? 0 : DateTimeOffset.ParseExact(pubTimeStr, "yyyy-MM-dd HH:mm:ss", null).ToUnixTimeSeconds();
-        var pages = result.GetProperty("episodes").EnumerateArray();
+        var pages = result.EnumerateArraySafe("episodes");
         List<Page> pagesInfo = new();
         int i = 1;
 
@@ -73,17 +73,17 @@ public class BangumiInfoFetcher : IFetcher
             {
                 res = $"{w}x{h}";
             }
-            string _title = page.GetProperty("title").ToString();
+            string _title = page.GetValueAsStringSafe("title");
             if (page.TryGetProperty("long_title", out var lt) && lt.ValueKind != JsonValueKind.Null)
                 _title += " " + lt.ToString();
             _title = _title.Trim();
             Page p = new(i++,
-                page.GetProperty("aid").ToString(),
-                page.GetProperty("cid").ToString(),
-                page.GetProperty("id").ToString(),
+                page.GetValueAsStringSafe("aid"),
+                page.GetValueAsStringSafe("cid"),
+                page.GetValueAsStringSafe("id"),
                 _title,
                 0, res,
-                page.GetProperty("pub_time").GetInt64());
+                page.GetInt64Safe("pub_time"));
             if (p.epid == id) index = p.index.ToString();
             pagesInfo.Add(p);
         }
