@@ -387,6 +387,3 @@ node_modules/
 /tmp/
 BBDown/116414115482147/
 bilibili-API-collect/
-
-# Widevine device files (binary keys, should not be committed)
-*.wvd
