@@ -246,7 +246,7 @@ public static partial class SubUtil
             }
             return subtitles;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
             LogDebug("GetIntlSubtitlesFromApi1 failed: {0}", ex.Message);
             return null;
@@ -286,7 +286,7 @@ public static partial class SubUtil
             }
             return subtitles;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
             LogDebug("GetIntlSubtitlesFromApi2 failed: {0}", ex.Message);
             return null;
@@ -325,7 +325,7 @@ public static partial class SubUtil
             //}
             return subtitles;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
             LogDebug("GetSubtitlesFromApi1 failed: {0}", ex.Message);
             return null;
@@ -359,7 +359,7 @@ public static partial class SubUtil
 
             return subtitles;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or KeyNotFoundException)
         {
             LogDebug("GetSubtitlesFromApi2 failed: {0}", ex.Message);
             return null;
@@ -405,7 +405,7 @@ public static partial class SubUtil
 
             return subtitles;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or InvalidProtocolBufferException)
         {
             LogDebug("GetSubtitlesFromApi3 failed: {0}", ex.Message);
             return null;

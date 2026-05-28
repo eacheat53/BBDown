@@ -124,7 +124,7 @@ internal static class BBDownDownloadUtil
         {
             throw; // non-retryable: bad input, unsupported feature, logic error
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or IOException or TaskCanceledException)
         {
             int backoffMs = retry * 3000;
             LogDebug("下载失败(第{0}次重试, {1}ms后): {2}", retry + 1, backoffMs, ex.Message);
@@ -195,7 +195,7 @@ internal static class BBDownDownloadUtil
             {
                 throw; // non-retryable
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is HttpRequestException or IOException or TaskCanceledException)
             {
                 int backoffMs = retry * 3000;
                 LogDebug("分段下载失败(第{0}次重试, {1}ms后): {2}", retry + 1, backoffMs, ex.Message);

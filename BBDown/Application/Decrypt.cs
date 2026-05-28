@@ -60,7 +60,10 @@ internal partial class Program
                 LogWarn("当前DRM类型不支持自动解密，请使用 --key --kid 手动提供密钥");
             }
         }
-        catch (Exception ex) { LogWarn($"自动密钥提取异常: {ex.Message}"); }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or FormatException)
+        {
+            LogWarn($"自动密钥提取异常: {ex.Message}");
+        }
 
         if (string.IsNullOrEmpty(parsed.KeyHex))
         {

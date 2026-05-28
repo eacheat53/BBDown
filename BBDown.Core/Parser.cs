@@ -240,7 +240,8 @@ public static partial class Parser
                     }
                 }
             }
-            catch (Exception e) { LogDebug("杜比音频解析失败: {0}", e.Message); }
+            catch (Exception e) when (e is KeyNotFoundException or InvalidOperationException)
+            { LogDebug("杜比音频解析失败: {0}", e.Message); }
 
             //处理Hi-Res无损
             try
@@ -257,7 +258,8 @@ public static partial class Parser
                     }
                 }
             }
-            catch (Exception e) { LogDebug("Hi-Res音频解析失败: {0}", e.Message); }
+            catch (Exception e) when (e is KeyNotFoundException or InvalidOperationException)
+            { LogDebug("Hi-Res音频解析失败: {0}", e.Message); }
 
             if (video != null)
             {
@@ -304,7 +306,8 @@ public static partial class Parser
                         if (firstVideo.TryGetProperty("widevine_pssh", out var pssh) && pssh.GetString() is string ps && ps.Length > 0)
                             parsedResult.PsshBase64 = ps;
                     }
-                    catch (Exception ex) { LogDebug("DRM license info extraction error: {0}", ex.Message); }
+                    catch (Exception ex) when (ex is KeyNotFoundException or InvalidOperationException)
+                    { LogDebug("DRM license info extraction error: {0}", ex.Message); }
                 }
             }
 

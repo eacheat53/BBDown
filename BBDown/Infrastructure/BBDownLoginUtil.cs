@@ -77,7 +77,10 @@ internal static class BBDownLoginUtil
                 }
             }
         }
-        catch (Exception e) { LogError(e.Message); }
+        catch (Exception e) when (e is HttpRequestException or JsonException or InvalidOperationException)
+        {
+            LogError(e.Message);
+        }
     }
 
     public static async Task LoginTV()
@@ -135,7 +138,10 @@ internal static class BBDownLoginUtil
                 }
             }
         }
-        catch (Exception e) { LogError(e.Message); }
+        catch (Exception e) when (e is HttpRequestException or JsonException or InvalidOperationException)
+        {
+            LogError(e.Message);
+        }
     }
 
     private static void SetOwnerOnlyPermission(string path)

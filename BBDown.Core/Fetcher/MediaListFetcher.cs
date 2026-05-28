@@ -29,7 +29,7 @@ public class MediaListFetcher : IFetcher
             {
                 return await new SeriesListFetcher().FetchAsync($"seriesBizId:{id}");
             }
-            catch (Exception fallbackEx)
+            catch (Exception fallbackEx) when (fallbackEx is HttpRequestException or InvalidOperationException)
             {
                 LogDebug("MediaList fallback to SeriesList failed: {0}", fallbackEx.Message);
                 var code = root.TryGetProperty("code", out var codeElem) && codeElem.ValueKind == JsonValueKind.Number

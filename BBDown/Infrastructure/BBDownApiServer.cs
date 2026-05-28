@@ -148,7 +148,7 @@ public class BBDownApiServer
                         input, savePathFormat, lang, fetchedAid, delay, apiType, task);
             task.IsSuccessful = true;
         }
-        catch (Exception e)
+        catch (Exception e) when (e is HttpRequestException or JsonException or IOException or InvalidOperationException)
         {
             bool debugMode = option.Debug || Config.DEBUG_LOG;
             var displayMsg = debugMode ? e.ToString() : e.Message;
@@ -186,7 +186,7 @@ public class BBDownApiServer
             {
                 await HTTPUtil.AppHttpClient.PostAsync(callBackWebHook, new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json"));
             }
-            catch (Exception e)
+            catch (Exception e) when (e is HttpRequestException)
             {
                 Logger.LogDebug("回调失败: {0}", e.Message);
             }
@@ -241,7 +241,7 @@ record struct MyOptionBindingResult<T>(T? Result, Exception? Exception)
 
             return new((T)item, null);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {
             return new(default, ex);
         }

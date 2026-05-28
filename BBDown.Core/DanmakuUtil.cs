@@ -35,7 +35,7 @@ public static class DanmakuUtil
             {
                 xmlFile.Load(reader);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is XmlException or IOException)
             {
                 LogDebug("解析字幕xml时出现异常: {0}", ex.ToString());
                 return null;
@@ -183,7 +183,7 @@ public static class DanmakuUtil
                 StartTime = ComputeTime(second);
                 EndTime = ComputeTime(second + (DanmakuMode == 1 ? MOVE_SPEND_TIME : TOP_SPEND_TIME));
             }
-            catch (Exception e)
+            catch (Exception e) when (e is FormatException or OverflowException)
             {
                 LogDebug("弹幕时间解析失败: {0}", e.Message);
             }

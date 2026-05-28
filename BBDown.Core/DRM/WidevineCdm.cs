@@ -31,7 +31,7 @@ public sealed class WidevineCdm : IDisposable
         {
             device = WvdDevice.Load(wvdPath);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is IOException)
         {
             Logger.LogWarn($"加载 device.wvd 失败: {ex.Message}");
             return null;
@@ -42,7 +42,7 @@ public sealed class WidevineCdm : IDisposable
         {
             return await cdm.GetKeysInternalAsync(psshB64);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or InvalidOperationException or FormatException)
         {
             Logger.LogWarn($"Widevine 解密失败: {ex.Message}");
             return null;
@@ -93,7 +93,7 @@ public sealed class WidevineCdm : IDisposable
             _serviceKey = rsa;
             return true;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is HttpRequestException or InvalidProtocolBufferException or CryptographicException)
         {
             Logger.LogDebug("获取服务证书失败: {0}", ex.Message);
             Logger.LogWarn("无法获取 Widevine 服务证书");
@@ -145,7 +145,7 @@ public sealed class WidevineCdm : IDisposable
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is ArgumentOutOfRangeException or InvalidProtocolBufferException)
         {
             Logger.LogDebug("PSSH parse error: {0}", ex.Message);
         }
