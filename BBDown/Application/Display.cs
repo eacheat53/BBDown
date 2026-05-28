@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.BBDownUtil;
 using System.Linq;
 using BBDown.Core;
 using BBDown.Core.Entity;
@@ -23,14 +22,14 @@ internal partial class Program
             foreach (var a in parsedResult.BackgroundAudioTracks)
             {
                 int pDur = pageDur == 0 ? a.dur : pageDur;
-                Logger.LogColor($"{index++}. [{a.codecs}] [{a.bandwidth} kbps] [~{FormatFileSize(pDur * a.bandwidth * 1024 / 8)}]", false);
+                Logger.LogColor($"{index++}. [{a.codecs}] [{a.bandwidth} kbps] [~{BBDownUtil.FormatFileSize(pDur * a.bandwidth * 1024 / 8)}]", false);
             }
             Logger.Log($"共计{parsedResult.RoleAudioList.Count}条配音, 每条包含{parsedResult.RoleAudioList[0].audio.Count}条配音流.");
             index = 0;
             foreach (var a in parsedResult.RoleAudioList[0].audio)
             {
                 int pDur = pageDur == 0 ? a.dur : pageDur;
-                Logger.LogColor($"{index++}. [{a.codecs}] [{a.bandwidth} kbps] [~{FormatFileSize(pDur * a.bandwidth * 1024 / 8)}]", false);
+                Logger.LogColor($"{index++}. [{a.codecs}] [{a.bandwidth} kbps] [~{BBDownUtil.FormatFileSize(pDur * a.bandwidth * 1024 / 8)}]", false);
             }
         }
         //展示所有的音视频流信息
@@ -42,7 +41,7 @@ internal partial class Program
             {
                 int pDur = pageDur == 0 ? v.dur : pageDur;
                 var size = v.size > 0 ? v.size : pDur * v.bandwidth * 1024 / 8;
-                Logger.LogColor($"{index++}. [{v.dfn}] [{v.res}] [{v.codecs}] [{v.fps}] [{v.bandwidth} kbps] [~{FormatFileSize(size)}]".Replace("[] ", ""), false);
+                Logger.LogColor($"{index++}. [{v.dfn}] [{v.res}] [{v.codecs}] [{v.fps}] [{v.bandwidth} kbps] [~{BBDownUtil.FormatFileSize(size)}]".Replace("[] ", ""), false);
                 if (onlyShowInfo) Console.WriteLine(v.baseUrl);
             }
         }
@@ -53,7 +52,7 @@ internal partial class Program
             foreach (var a in parsedResult.AudioTracks)
             {
                 int pDur = pageDur == 0 ? a.dur : pageDur;
-                Logger.LogColor($"{index++}. [{a.codecs}] [{a.bandwidth} kbps] [~{FormatFileSize(pDur * a.bandwidth * 1024 / 8)}]", false);
+                Logger.LogColor($"{index++}. [{a.codecs}] [{a.bandwidth} kbps] [~{BBDownUtil.FormatFileSize(pDur * a.bandwidth * 1024 / 8)}]", false);
                 if (onlyShowInfo) Console.WriteLine(a.baseUrl);
             }
         }
@@ -65,12 +64,12 @@ internal partial class Program
         {
             int pDur = pageDur == 0 ? selectedVideo.dur : pageDur;
             var size = selectedVideo.size > 0 ? selectedVideo.size : pDur * selectedVideo.bandwidth * 1024 / 8;
-            Logger.LogColor($"[视频] [{selectedVideo.dfn}] [{selectedVideo.res}] [{selectedVideo.codecs}] [{selectedVideo.fps}] [{selectedVideo.bandwidth} kbps] [~{FormatFileSize(size)}]".Replace("[] ", ""), false);
+            Logger.LogColor($"[视频] [{selectedVideo.dfn}] [{selectedVideo.res}] [{selectedVideo.codecs}] [{selectedVideo.fps}] [{selectedVideo.bandwidth} kbps] [~{BBDownUtil.FormatFileSize(size)}]".Replace("[] ", ""), false);
         }
         if (selectedAudio != null)
         {
             int pDur = pageDur == 0 ? selectedAudio.dur : pageDur;
-            Logger.LogColor($"[音频] [{selectedAudio.codecs}] [{selectedAudio.bandwidth} kbps] [~{FormatFileSize(pDur * selectedAudio.bandwidth * 1024 / 8)}]", false);
+            Logger.LogColor($"[音频] [{selectedAudio.codecs}] [{selectedAudio.bandwidth} kbps] [~{BBDownUtil.FormatFileSize(pDur * selectedAudio.bandwidth * 1024 / 8)}]", false);
         }
     }
 
@@ -117,7 +116,7 @@ internal partial class Program
         {
             await BBDownDownloadUtil.MultiThreadDownloadFileAsync(url, destPath, downloadConfig);
             Logger.Log($"合并{(video ? "视频" : "音频")}分片...");
-            CombineMultipleFilesIntoSingleFile(GetFiles(Path.GetDirectoryName(destPath)!, $".{(video ? "v" : "a")}clip"), destPath);
+            BBDownUtil.CombineMultipleFilesIntoSingleFile(BBDownUtil.GetFiles(Path.GetDirectoryName(destPath)!, $".{(video ? "v" : "a")}clip"), destPath);
             Logger.Log("清理分片...");
             foreach (var file in new DirectoryInfo(Path.GetDirectoryName(destPath)!).EnumerateFiles("*.?clip")) file.Delete();
         }

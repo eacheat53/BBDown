@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.BBDownUtil;
 using System.IO;
 using BBDown.Core;
 using System.Runtime.InteropServices;
@@ -73,7 +72,7 @@ static partial class BBDownMuxer
         }
         if (points != null && points.Any())
         {
-            var meta = GetMp4boxMetaString(points);
+            var meta = BBDownUtil.GetMp4boxMetaString(points);
             var baseDir = Path.GetDirectoryName(string.IsNullOrEmpty(videoPath) ? audioPath : videoPath);
             if (string.IsNullOrEmpty(baseDir))
                 baseDir = ".";
@@ -181,7 +180,7 @@ static partial class BBDownMuxer
 
         if (points != null && points.Any())
         {
-            var meta = GetFFmpegMetaString(points);
+            var meta = BBDownUtil.GetFFmpegMetaString(points);
             var baseDir = Path.GetDirectoryName(string.IsNullOrEmpty(videoPath) ? audioPath : videoPath);
             if (string.IsNullOrEmpty(baseDir))
                 baseDir = ".";
@@ -236,8 +235,8 @@ static partial class BBDownMuxer
                 RunExe(FFMPEG, arguments);
                 File.Delete(file);
             }
-            var f = GetFiles(Path.GetDirectoryName(files[0])!, ".ts");
-            CombineMultipleFilesIntoSingleFile(f, outPath);
+            var f = BBDownUtil.GetFiles(Path.GetDirectoryName(files[0])!, ".ts");
+            BBDownUtil.CombineMultipleFilesIntoSingleFile(f, outPath);
             foreach (var s in f) File.Delete(s);
         }
     }

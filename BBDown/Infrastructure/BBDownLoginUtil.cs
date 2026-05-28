@@ -3,7 +3,6 @@ using BBDown.Core;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using static BBDown.BBDownUtil;
 using System.Text;
 using System.Text.Json;
 using System.Net.Http;
@@ -27,7 +26,7 @@ internal static class BBDownLoginUtil
             string loginUrl = "https://passport.bilibili.com/x/passport-login/web/qrcode/generate?source=main-fe-header";
             using var loginDoc = JsonDocument.Parse(await HTTPUtil.GetWebSourceAsync(loginUrl));
             string url = loginDoc.RootElement.GetProperty("data").GetProperty("url").GetString()!;
-            string qrcodeKey = GetQueryString("qrcode_key", url);
+            string qrcodeKey = BBDownUtil.GetQueryString("qrcode_key", url);
             //Logger.Log(oauthKey);
             //Logger.Log(url);
             bool flag = false;
@@ -67,7 +66,7 @@ internal static class BBDownLoginUtil
                 {
                     using var successDoc = JsonDocument.Parse(w);
                     string cc = successDoc.RootElement.GetProperty("data").GetProperty("url").GetString()!;
-                    Logger.Log("登录成功: SESSDATA=" + GetQueryString("SESSDATA", cc));
+                    Logger.Log("登录成功: SESSDATA=" + BBDownUtil.GetQueryString("SESSDATA", cc));
                     //导出cookie, 转义英文逗号 否则部分场景会出问题
                     var cookiePath = Path.Combine(Program.APP_DIR, "BBDown.data");
                     await File.WriteAllTextAsync(cookiePath, cc[(cc.IndexOf('?') + 1)..].Replace("&", ";").Replace(",", "%2C"));
@@ -89,7 +88,7 @@ internal static class BBDownLoginUtil
         {
             string loginUrl = "https://passport.snm0516.aisee.tv/x/passport-tv-login/qrcode/auth_code";
             string pollUrl = "https://passport.bilibili.com/x/passport-tv-login/qrcode/poll";
-            var parameters = GetTVLoginParms();
+            var parameters = BBDownUtil.GetTVLoginParms();
             Logger.Log("获取登录地址...");
             byte[] responseArray = await (await HTTPUtil.AppHttpClient.PostAsync(loginUrl, new FormUrlEncodedContent(parameters.ToDictionary()))).Content.ReadAsByteArrayAsync();
             string web = Encoding.UTF8.GetString(responseArray);
@@ -105,9 +104,9 @@ internal static class BBDownLoginUtil
             var consoleQRCode = new ConsoleQRCode(qrCodeData);
             consoleQRCode.GetGraphic();
             parameters.Set("auth_code", authCode);
-            parameters.Set("ts", GetTimeStamp(true));
+            parameters.Set("ts", BBDownUtil.GetTimeStamp(true));
             parameters.Remove("sign");
-            parameters.Add("sign", GetSign(ToQueryString(parameters)));
+            parameters.Add("sign", BBDownUtil.GetSign(BBDownUtil.ToQueryString(parameters)));
             while (true)
             {
                 await Task.Delay(1000);

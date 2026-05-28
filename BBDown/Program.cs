@@ -5,7 +5,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.BBDownUtil;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -112,7 +111,7 @@ partial class Program
     {
         var defaultListenUrl = "http://0.0.0.0:23333";
         //检测更新
-        _ = CheckUpdateAsync();
+        _ = BBDownUtil.CheckUpdateAsync();
         var server = new BBDownApiServer();
         server.SetUpServer();
         server.Run(string.IsNullOrEmpty(listenUrl) ? defaultListenUrl : listenUrl);

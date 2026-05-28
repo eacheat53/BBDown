@@ -1,8 +1,7 @@
-using System;
+﻿using System;
 using System.IO;
 
 using BBDown.Core.Util;
-using static BBDown.BBDownUtil;
 using System.Text.Json;
 using BBDown.Core;
 namespace BBDown;

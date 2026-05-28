@@ -1,8 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.BBDownUtil;
 using System.Text.RegularExpressions;
 using BBDown.Core.Entity;
 
@@ -27,9 +26,9 @@ internal partial class Program
                 selectedPages = [vInfo.Index];
                 Logger.Log("程序已自动选择你输入的集数, 如果要下载其他集数请自行指定分P(如可使用-p ALL代表全部)");
             }
-            else if (!string.IsNullOrEmpty(GetQueryString("p", input)))
+            else if (!string.IsNullOrEmpty(BBDownUtil.GetQueryString("p", input)))
             {
-                selectedPages = [GetQueryString("p", input)];
+                selectedPages = [BBDownUtil.GetQueryString("p", input)];
                 Logger.Log("程序已自动选择你输入的集数, 如果要下载其他集数请自行指定分P(如可使用-p ALL代表全部)");
             }
         }

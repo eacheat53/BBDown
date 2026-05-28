@@ -1,9 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.BBDownUtil;
 using BBDown.Core;
 using BBDown.Core.Entity;
 
@@ -78,7 +77,7 @@ internal partial class Program
         if (myOption is { UseIntlApi: false, UseTvApi: false } && Config.Current.Area == "")
         {
             Logger.Log("检测账号登录...");
-            if (!await CheckLogin(Config.Current.Cookie))
+            if (!await BBDownUtil.CheckLogin(Config.Current.Cookie))
             {
                 Logger.LogWarn("========================================");
                 Logger.LogWarn("  你尚未登录B站账号！");
@@ -167,7 +166,7 @@ internal partial class Program
                 }
             }
 
-            Logger.Log($"P{p.index}: [{p.cid}] [{p.title}] [{FormatTime(p.dur)}]");
+            Logger.Log($"P{p.index}: [{p.cid}] [{p.title}] [{BBDownUtil.FormatTime(p.dur)}]");
         }
         return (aidOri, vInfo, apiType);
     }

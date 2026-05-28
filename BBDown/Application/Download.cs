@@ -5,7 +5,6 @@ using System.Net;
 using System.Linq;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.BBDownUtil;
 using BBDown.Core;
 using BBDown.Core.Entity;
 using System.Text.Json;
@@ -89,7 +88,7 @@ internal partial class Program
         try
         {
             Logger.LogDebug("尝试获取章节信息...");
-            p.points = await FetchPointsAsync(p.cid, p.aid);
+            p.points = await BBDownUtil.FetchPointsAsync(p.cid, p.aid);
 
             string videoPath = $"{p.aid}/{p.aid}.P{p.index}.{p.cid}.mp4";
             string audioPath = $"{p.aid}/{p.aid}.P{p.index}.{p.cid}.m4a";
@@ -420,7 +419,7 @@ internal partial class Program
                 foreach (var v in parsedResult.VideoTracks)
                 {
                     var kbps = v.dur > 0 ? v.size / 1024 / v.dur * 8 : 0;
-                    Logger.LogColor($"{index++}. [{v.dfn}] [{v.res}] [{v.codecs}] [{v.fps}] [~{kbps:00} kbps] [{FormatFileSize(v.size)}]".Replace("[] ", ""), false);
+                    Logger.LogColor($"{index++}. [{v.dfn}] [{v.res}] [{v.codecs}] [{v.fps}] [~{kbps:00} kbps] [{BBDownUtil.FormatFileSize(v.size)}]".Replace("[] ", ""), false);
                     if (myOption.OnlyShowInfo)
                     {
                         clips.ForEach(Console.WriteLine);
@@ -448,7 +447,7 @@ internal partial class Program
                 }
                 Logger.Log($"下载P{p.index}完毕");
                 Logger.Log("开始合并分段...");
-                var files = GetFiles(Path.GetDirectoryName(videoPath)!, ".mp4");
+                var files = BBDownUtil.GetFiles(Path.GetDirectoryName(videoPath)!, ".mp4");
                 videoPath = $"{p.aid}/{p.aid}.P{p.index}.{p.cid}.mp4";
                 BBDownMuxer.MergeFLV(files, videoPath);
                 if (myOption.SkipMux) return;
