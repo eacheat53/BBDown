@@ -1,6 +1,6 @@
 name: Build Latest
 
-on: [push,workflow_dispatch]
+on: [push, workflow_dispatch]
 
 env:
   DOTNET_SDK_VERSION: "10.0.300"
