@@ -120,9 +120,15 @@ internal static class BBDownDownloadUtil
             File.Move(tmpName, path, true);
             break;
         }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or InvalidOperationException)
+        {
+            throw; // non-retryable: bad input, unsupported feature, logic error
+        }
         catch (Exception ex)
         {
-            LogDebug("下载失败(重试中): {0}", ex.Message);
+            int backoffMs = retry * 3000;
+            LogDebug("下载失败(第{0}次重试, {1}ms后): {2}", retry + 1, backoffMs, ex.Message);
+            await Task.Delay(backoffMs);
             if (++retry == 3) throw;
         }
         }
@@ -185,9 +191,15 @@ internal static class BBDownDownloadUtil
             {
                 if (++retry == 3) throw new NotSupportedException("服务器可能并不支持多线程下载, 请使用 --multi-thread false 关闭多线程");
             }
+            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+            {
+                throw; // non-retryable
+            }
             catch (Exception ex)
             {
-                LogDebug("分段下载失败(重试中): {0}", ex.Message);
+                int backoffMs = retry * 3000;
+                LogDebug("分段下载失败(第{0}次重试, {1}ms后): {2}", retry + 1, backoffMs, ex.Message);
+                await Task.Delay(backoffMs);
                 if (++retry == 3) throw new IOException($"分段 {clip.index} 下载失败，请检查网络或关闭多线程重试", ex);
             }
             }
