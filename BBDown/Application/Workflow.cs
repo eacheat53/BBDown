@@ -90,7 +90,7 @@ internal partial class Program
         }
 
         Log("获取aid...");
-        aidOri = await GetAvIdAsync(input);
+        aidOri = await UrlResolver.ResolveAsync(input);
         Log($"获取aid结束: {aidOri}");
 
         if (string.IsNullOrEmpty(aidOri))
