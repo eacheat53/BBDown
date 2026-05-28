@@ -1,4 +1,5 @@
 ﻿using System;
+using BBDown.Core.Util;
 using BBDown.Core;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -12,7 +13,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.Core.Util.HTTPUtil;
 
 namespace BBDown;
 
@@ -24,7 +24,7 @@ public static partial class BBDownUtil
         {
             var ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version!;
             string nowVer = $"{ver.Major}.{ver.Minor}.{ver.Build}";
-            string redirectUrl = await GetWebLocationAsync("https://github.com/AliverAnme/BBDown/releases/latest");
+            string redirectUrl = await HTTPUtil.GetWebLocationAsync("https://github.com/AliverAnme/BBDown/releases/latest");
             string latestVer = redirectUrl.Replace("https://github.com/AliverAnme/BBDown/releases/tag/", "");
             if (nowVer != latestVer && !latestVer.StartsWith("https"))
             {
@@ -230,7 +230,7 @@ public static partial class BBDownUtil
         try
         {
             string api = $"https://api.bilibili.com/x/player/wbi/v2?cid={cid}&aid={aid}";
-            string json = await GetWebSourceAsync(api);
+            string json = await HTTPUtil.GetWebSourceAsync(api);
             using var infoJson = JsonDocument.Parse(json);
             if (infoJson.RootElement.GetProperty("data").TryGetProperty("view_points", out JsonElement vPoint))
             {
@@ -319,7 +319,7 @@ public static partial class BBDownUtil
         try
         {
             var api = "https://api.bilibili.com/x/web-interface/nav";
-            var source = await GetWebSourceAsync(api);
+            var source = await HTTPUtil.GetWebSourceAsync(api);
             using var navDoc = JsonDocument.Parse(source);
             var json = navDoc.RootElement;
             var is_login = json.GetProperty("data").GetProperty("isLogin").GetBoolean();

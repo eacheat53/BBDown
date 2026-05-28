@@ -1,6 +1,6 @@
 ﻿using BBDown.Core.Entity;
+using BBDown.Core.Util;
 using System.Text.Json;
-using static BBDown.Core.Util.HTTPUtil;
 using static BBDown.Core.Util.PathUtil;
 
 namespace BBDown.Core.Fetcher;
@@ -12,14 +12,14 @@ public class SpaceVideoFetcher : IFetcher
         id = id[4..];
         // using the live API can bypass w_rid
         string userInfoApi = $"https://api.live.bilibili.com/live_user/v1/Master/info?uid={id}";
-        using var userDoc = JsonDocument.Parse(await GetWebSourceAsync(userInfoApi));
+        using var userDoc = JsonDocument.Parse(await HTTPUtil.GetWebSourceAsync(userInfoApi));
         string userName = GetValidFileName(userDoc.RootElement.GetProperty("data").GetProperty("info").GetProperty("uname").ToString(), filterSlash: true);
         List<string> urls = new();
         int pageSize = 50;
         int pageNumber = 1;
         var api = Parser.WbiSign($"mid={id}&order=pubdate&pn={pageNumber}&ps={pageSize}&tid=0&wts={DateTimeOffset.Now.ToUnixTimeSeconds().ToString()}");
         api = $"https://api.bilibili.com/x/space/wbi/arc/search?{api}";
-        string json = await GetWebSourceAsync(api);
+        string json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
         var pages = infoJson.RootElement.GetProperty("data").GetProperty("list").GetProperty("vlist").EnumerateArray();
         foreach (var page in pages)
@@ -48,7 +48,7 @@ pause");
         List<string> urls = new();
         var api = Parser.WbiSign($"mid={mid}&order=pubdate&pn={pageNumber}&ps={pageSize}&tid=0&wts={DateTimeOffset.Now.ToUnixTimeSeconds().ToString()}");
         api = $"https://api.bilibili.com/x/space/wbi/arc/search?{api}";
-        string json = await GetWebSourceAsync(api);
+        string json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
         var pages = infoJson.RootElement.GetProperty("data").GetProperty("list").GetProperty("vlist").EnumerateArray();
         foreach (var page in pages)

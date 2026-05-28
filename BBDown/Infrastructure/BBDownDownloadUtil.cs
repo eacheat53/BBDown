@@ -1,4 +1,5 @@
 ﻿using System;
+using BBDown.Core.Util;
 using BBDown.Core;
 using System.Collections.Generic;
 using System.IO;
@@ -7,7 +8,6 @@ using System.Net.Http;
 using System.Net;
 using System.Threading.Tasks;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.Core.Util.HTTPUtil;
 using System.Collections.Concurrent;
 
 namespace BBDown;
@@ -45,7 +45,7 @@ internal static class BBDownDownloadUtil
         httpRequestMessage.Headers.IfRange = lastTime != null ? new(lastTime.Value) : null;
         httpRequestMessage.RequestUri = new(url);
 
-        using var response = (await AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, token)).EnsureSuccessStatusCode();
+        using var response = (await HTTPUtil.AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, token)).EnsureSuccessStatusCode();
 
         if (response.StatusCode == HttpStatusCode.OK) // server doesn't response a partial content
         {
@@ -243,7 +243,7 @@ internal static class BBDownDownloadUtil
         httpRequestMessage.Headers.TryAddWithoutValidation("User-Agent", "Mozilla/5.0");
         httpRequestMessage.Headers.TryAddWithoutValidation("Cookie", Core.Config.Current.Cookie);
         httpRequestMessage.RequestUri = new(url);
-        using var response = (await AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, token))
+        using var response = (await HTTPUtil.AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, token))
             .EnsureSuccessStatusCode();
         long totalSizeBytes = response.Content.Headers.ContentLength ?? 0;
 

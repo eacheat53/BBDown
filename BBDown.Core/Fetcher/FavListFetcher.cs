@@ -1,7 +1,7 @@
 ﻿using BBDown.Core.Entity;
+using BBDown.Core.Util;
 using System.Text.Json;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.Core.Util.HTTPUtil;
 
 
 namespace BBDown.Core.Fetcher;
@@ -23,7 +23,7 @@ public class FavListFetcher : IFetcher
         if (favId == "")
         {
             var favListApi = $"https://api.bilibili.com/x/v3/fav/folder/created/list-all?up_mid={mid}";
-            using var favDoc = JsonDocument.Parse(await GetWebSourceAsync(favListApi));
+            using var favDoc = JsonDocument.Parse(await HTTPUtil.GetWebSourceAsync(favListApi));
             var list = favDoc.RootElement.GetProperty("data").GetProperty("list").EnumerateArray();
             var firstFav = list.FirstOrDefault();
             if (firstFav.ValueKind == System.Text.Json.JsonValueKind.Undefined)
@@ -36,7 +36,7 @@ public class FavListFetcher : IFetcher
         List<Page> pagesInfo = new();
 
         var api = $"https://api.bilibili.com/x/v3/fav/resource/list?media_id={favId}&pn=1&ps={pageSize}&order=mtime&type=2&tid=0&platform=web";
-        var json = await GetWebSourceAsync(api);
+        var json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
         var data = infoJson.RootElement.GetProperty("data");
         int totalCount = data.GetProperty("info").GetProperty("media_count").GetInt32();
@@ -50,7 +50,7 @@ public class FavListFetcher : IFetcher
         for (int page = 2; page <= totalPage; page++)
         {
             api = $"https://api.bilibili.com/x/v3/fav/resource/list?media_id={favId}&pn={page}&ps={pageSize}&order=mtime&type=2&tid=0&platform=web";
-            json = await GetWebSourceAsync(api);
+            json = await HTTPUtil.GetWebSourceAsync(api);
             using var jsonDoc = JsonDocument.Parse(json);
             data = jsonDoc.RootElement.GetProperty("data");
             medias.AddRange(data.GetProperty("medias").EnumerateArray().ToList());

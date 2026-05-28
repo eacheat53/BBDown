@@ -1,7 +1,7 @@
 ﻿using BBDown.Core.Entity;
+using BBDown.Core.Util;
 using System.Text.Json;
 using static BBDown.Core.Entity.Entity;
-using static BBDown.Core.Util.HTTPUtil;
 
 namespace BBDown.Core.Fetcher;
 
@@ -12,7 +12,7 @@ public class BangumiInfoFetcher : IFetcher
         id = id[3..];
         string index = "";
         string api = $"https://{Config.Current.EpHost}/pgc/view/web/season?ep_id={id}";
-        string json = await GetWebSourceAsync(api);
+        string json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
         if (!infoJson.RootElement.TryGetProperty("result", out var result))
             throw new KeyNotFoundException("Bangumi API response missing 'result' node");

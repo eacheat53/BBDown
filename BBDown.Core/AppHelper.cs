@@ -1,10 +1,10 @@
 ﻿using BBDown.Core.Protobuf;
+using BBDown.Core.Util;
 using Google.Protobuf;
 using System.Buffers.Binary;
 using System.IO.Compression;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using static BBDown.Core.Util.HTTPUtil;
 
 namespace BBDown.Core;
 
@@ -67,12 +67,12 @@ static class AppHelper
             if (!(string.IsNullOrEmpty(encoding) || encoding == "HEVC"))
                 Logger.LogWarn("APP的番剧不支持 HEVC 以外的编码");
             var body = GetPayload(ParseId(epId, nameof(epId)), ParseId(cid, nameof(cid)), ParseId(qn, nameof(qn)), PlayViewReq.Types.CodeType.Code265);
-            data = await GetPostResponseAsync(API2, body, headers);
+            data = await HTTPUtil.GetPostResponseAsync(API2, body, headers);
         }
         else
         {
             var body = GetPayload(ParseId(aid, nameof(aid)), ParseId(cid, nameof(cid)), ParseId(qn, nameof(qn)), GetVideoCodeType(encoding));
-            data = await GetPostResponseAsync(API, body, headers);
+            data = await HTTPUtil.GetPostResponseAsync(API, body, headers);
         }
         var resp = new MessageParser<PlayViewReply>(() => new PlayViewReply()).ParseFrom(ReadMessage(data));
 
