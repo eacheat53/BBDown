@@ -78,7 +78,7 @@ partial class Program
 
         if (mergedArgs.Contains("--debug"))
         {
-            Config.DEBUG_LOG = true;
+            Config.Apply(Config.Current with { DebugLog = true });
         }
 
         var services = new ServiceCollection();
