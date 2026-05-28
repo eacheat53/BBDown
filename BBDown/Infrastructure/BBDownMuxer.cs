@@ -40,7 +40,7 @@ static partial class BBDownMuxer
         p.Start();
         p.BeginErrorReadLine();
         p.BeginOutputReadLine();
-        const int muxTimeoutMinutes = 30;
+        int muxTimeoutMinutes = Core.Config.Current.MuxerTimeoutMinutes;
         if (!p.WaitForExit(muxTimeoutMinutes * 60_000))
         {
             try { p.Kill(); } catch { /* ignore kill failures */ }

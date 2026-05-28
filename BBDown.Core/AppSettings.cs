@@ -13,7 +13,11 @@ public record AppSettings(
     string TvHost = "api.snm0516.aisee.tv",
     string Area = "",
     string Wbi = "",
-    bool SkipSslCheck = false
+    bool SkipSslCheck = false,
+    int MuxerTimeoutMinutes = 30,
+    int MaxRetryCount = 3,
+    int RetryDelayMs = 3000,
+    int ThreadSegmentSizeMb = 20
 )
 {
     /// <summary>

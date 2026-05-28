@@ -133,7 +133,8 @@ internal static class BBDownDownloadUtil
             Logger.LogDebug("断点续传: 临时文件大小不匹配, 删除残留: {0}", tmpName);
             File.Delete(tmpName);
         }
-        while (retry < 3)
+        int maxRetry = Config.Current.MaxRetryCount;
+        while (retry < maxRetry)
         {
         try
         {
@@ -148,10 +149,10 @@ internal static class BBDownDownloadUtil
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException or TaskCanceledException)
         {
-            int backoffMs = retry * 3000;
+            int backoffMs = retry * Config.Current.RetryDelayMs;
             Logger.LogDebug("下载失败(第{0}次重试, {1}ms后): {2}", retry + 1, backoffMs, ex.Message);
             await Task.Delay(backoffMs, token);
-            if (++retry == 3) throw;
+            if (++retry == maxRetry) throw;
         }
         }
         }
@@ -194,11 +195,12 @@ internal static class BBDownDownloadUtil
 
         using var progress = new ProgressBar(config.RelatedTask);
         progress.Report(0);
+        int maxRetry = Config.Current.MaxRetryCount;
         await Parallel.ForEachAsync(allClips, token, async (clip, _) =>
         {
             int retry = 0;
             string tmp = Path.Combine(Path.GetDirectoryName(path)!, clip.index.ToString("00000") + "_" + Path.GetFileNameWithoutExtension(path) + (Path.GetExtension(path).EndsWith(".mp4") ? ".vclip" : ".aclip"));
-            while (retry < 3)
+            while (retry < maxRetry)
             {
             try
             {
@@ -219,10 +221,10 @@ internal static class BBDownDownloadUtil
             }
             catch (Exception ex) when (ex is HttpRequestException or IOException or TaskCanceledException)
             {
-                int backoffMs = retry * 3000;
+                int backoffMs = retry * Config.Current.RetryDelayMs;
                 Logger.LogDebug("分段下载失败(第{0}次重试, {1}ms后): {2}", retry + 1, backoffMs, ex.Message);
                 await Task.Delay(backoffMs, _);
-                if (++retry == 3) throw new IOException($"分段 {clip.index} 下载失败，请检查网络或关闭多线程重试", ex);
+                if (++retry == maxRetry) throw new IOException($"分段 {clip.index} 下载失败，请检查网络或关闭多线程重试", ex);
             }
             }
         });
@@ -239,7 +241,7 @@ internal static class BBDownDownloadUtil
         List<Clip> clips = [];
         int index = 0;
         long counter = 0;
-        long perSize = 20L * 1024 * 1024;
+        long perSize = Config.Current.ThreadSegmentSizeMb * 1024L * 1024;
         while (fileSize > 0)
         {
             long segmentSize = Math.Min(perSize, fileSize);

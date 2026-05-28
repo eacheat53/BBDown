@@ -213,6 +213,22 @@ public class MyOption : CommandSettings
     [Description("设置下载合集分P之间的下载间隔时间(单位: 秒, 默认无间隔)")]
     public int DelayPerPage { get; set; } = 0;
 
+    [CommandOption("--muxer-timeout")]
+    [Description("混流超时时长(分钟, 默认30)")]
+    public int MuxerTimeout { get; set; } = 30;
+
+    [CommandOption("--retry-count")]
+    [Description("网络请求失败后的重试次数(默认3)")]
+    public int RetryCount { get; set; } = 3;
+
+    [CommandOption("--retry-delay")]
+    [Description("重试间隔基础毫秒数(默认3000)")]
+    public int RetryDelay { get; set; } = 3000;
+
+    [CommandOption("--thread-segment-size")]
+    [Description("多线程下载时分片大小(MB, 默认20)")]
+    public int ThreadSegmentSize { get; set; } = 20;
+
     [CommandOption("--host")]
     [Description("指定BiliPlus host")]
     public string Host { get; set; } = "api.bilibili.com";

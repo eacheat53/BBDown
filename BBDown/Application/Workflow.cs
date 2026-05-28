@@ -51,7 +51,11 @@ internal partial class Program
             EpHost: myOption.EpHost,
             TvHost: myOption.TvHost,
             Area: myOption.Area,
-            SkipSslCheck: myOption.Insecure
+            SkipSslCheck: myOption.Insecure,
+            MuxerTimeoutMinutes: myOption.MuxerTimeout,
+            MaxRetryCount: myOption.RetryCount,
+            RetryDelayMs: myOption.RetryDelay,
+            ThreadSegmentSizeMb: myOption.ThreadSegmentSize
         ));
 
         Logger.LogDebug("AppDirectory: {0}", APP_DIR);
