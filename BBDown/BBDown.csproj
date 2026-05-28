@@ -13,7 +13,7 @@
     <PackageOutputPath>./nupkg</PackageOutputPath>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <NoWarn>$(NoWarn);IL3050;IL3000;IL3001;IL3002</NoWarn>
+    <NoWarn>$(NoWarn);IL3050;IL3000;IL3001;IL3002;IL2067</NoWarn>
     <InternalsVisibleTo>BBDown.Tests</InternalsVisibleTo>
   </PropertyGroup>
 
