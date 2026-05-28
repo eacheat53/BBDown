@@ -23,7 +23,7 @@ internal static class BBDownDownloadUtil
         public DownloadTask? RelatedTask { get; set; } = null;
     }
 
-    private static async Task RangeDownloadToTmpAsync(int id, string url, string tmpName, long fromPosition, long? toPosition, Action<int, long, long> onProgress, bool failOnRangeNotSupported = false)
+    private static async Task RangeDownloadToTmpAsync(int id, string url, string tmpName, long fromPosition, long? toPosition, Action<int, long, long> onProgress, bool failOnRangeNotSupported = false, CancellationToken token = default)
     {
         DateTimeOffset? lastTime = File.Exists(tmpName) ? new FileInfo(tmpName).LastWriteTimeUtc : null;
         using var fileStream = new FileStream(tmpName, FileMode.OpenOrCreate);
@@ -45,7 +45,7 @@ internal static class BBDownDownloadUtil
         httpRequestMessage.Headers.IfRange = lastTime != null ? new(lastTime.Value) : null;
         httpRequestMessage.RequestUri = new(url);
 
-        using var response = (await AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead)).EnsureSuccessStatusCode();
+        using var response = (await AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, token)).EnsureSuccessStatusCode();
 
         if (response.StatusCode == HttpStatusCode.OK) // server doesn't response a partial content
         {
@@ -54,7 +54,7 @@ internal static class BBDownDownloadUtil
             fileStream.Seek(0, SeekOrigin.Begin);
         }
 
-        using var stream = await response.Content.ReadAsStreamAsync();
+        using var stream = await response.Content.ReadAsStreamAsync(token);
         var totalBytes = downloadedBytes + (response.Content.Headers.ContentLength ?? long.MaxValue - downloadedBytes);
 
         const int blockSize = 1048576 / 4;
@@ -62,10 +62,10 @@ internal static class BBDownDownloadUtil
 
         while (downloadedBytes < totalBytes)
         {
-            var recevied = await stream.ReadAsync(buffer);
+            var recevied = await stream.ReadAsync(buffer, token);
             if (recevied == 0) break;
-            await fileStream.WriteAsync(buffer.AsMemory(0, recevied));
-            await fileStream.FlushAsync();
+            await fileStream.WriteAsync(buffer.AsMemory(0, recevied), token);
+            await fileStream.FlushAsync(token);
             downloadedBytes += recevied;
             onProgress(id, downloadedBytes - fromPosition, totalBytes);
         }
@@ -90,11 +90,11 @@ internal static class BBDownDownloadUtil
         }
     }
 
-    public static async Task DownloadFileAsync(string url, string path, DownloadConfig config)
+    public static async Task DownloadFileAsync(string url, string path, DownloadConfig config, CancellationToken token = default)
     {
         if (string.IsNullOrEmpty(url)) return;
         var downloadLock = GetDownloadLock(path);
-        await downloadLock.WaitAsync();
+        await downloadLock.WaitAsync(token);
         try
         {
         if (config.ForceHttp) url = ReplaceUrl(url);
@@ -116,7 +116,7 @@ internal static class BBDownDownloadUtil
         try
         {
             using var progress = new ProgressBar(config.RelatedTask);
-            await RangeDownloadToTmpAsync(0, url, tmpName, 0, null, (_, downloaded, total) => progress.Report((double)downloaded / total, downloaded));
+            await RangeDownloadToTmpAsync(0, url, tmpName, 0, null, (_, downloaded, total) => progress.Report((double)downloaded / total, downloaded), token: token);
             File.Move(tmpName, path, true);
             break;
         }
@@ -128,7 +128,7 @@ internal static class BBDownDownloadUtil
         {
             int backoffMs = retry * 3000;
             LogDebug("下载失败(第{0}次重试, {1}ms后): {2}", retry + 1, backoffMs, ex.Message);
-            await Task.Delay(backoffMs);
+            await Task.Delay(backoffMs, token);
             if (++retry == 3) throw;
         }
         }
@@ -139,11 +139,11 @@ internal static class BBDownDownloadUtil
         }
     }
 
-    public static async Task MultiThreadDownloadFileAsync(string url, string path, DownloadConfig config)
+    public static async Task MultiThreadDownloadFileAsync(string url, string path, DownloadConfig config, CancellationToken token = default)
     {
         if (string.IsNullOrEmpty(url)) return;
         var downloadLock = GetDownloadLock(path);
-        await downloadLock.WaitAsync();
+        await downloadLock.WaitAsync(token);
         try
         {
         if (config.ForceHttp) url = ReplaceUrl(url);
@@ -156,7 +156,7 @@ internal static class BBDownDownloadUtil
             Console.WriteLine();
             return;
         }
-        long fileSize = await GetFileSizeAsync(url);
+        long fileSize = await GetFileSizeAsync(url, token);
         LogDebug("文件大小：{0} bytes", fileSize);
         //已下载过, 跳过下载
         if (File.Exists(path) && new FileInfo(path).Length == fileSize)
@@ -172,7 +172,7 @@ internal static class BBDownDownloadUtil
 
         using var progress = new ProgressBar(config.RelatedTask);
         progress.Report(0);
-        await Parallel.ForEachAsync(allClips, async (clip, _) =>
+        await Parallel.ForEachAsync(allClips, token, async (clip, _) =>
         {
             int retry = 0;
             string tmp = Path.Combine(Path.GetDirectoryName(path)!, clip.index.ToString("00000") + "_" + Path.GetFileNameWithoutExtension(path) + (Path.GetExtension(path).EndsWith(".mp4") ? ".vclip" : ".aclip"));
@@ -184,7 +184,7 @@ internal static class BBDownDownloadUtil
                 {
                     clipProgress[index] = downloaded;
                     progress.Report(fileSize > 0 ? (double)clipProgress.Values.Sum() / fileSize : 0, clipProgress.Values.Sum());
-                }, true);
+                }, true, _);
                 break;
             }
             catch (NotSupportedException)
@@ -199,7 +199,7 @@ internal static class BBDownDownloadUtil
             {
                 int backoffMs = retry * 3000;
                 LogDebug("分段下载失败(第{0}次重试, {1}ms后): {2}", retry + 1, backoffMs, ex.Message);
-                await Task.Delay(backoffMs);
+                await Task.Delay(backoffMs, _);
                 if (++retry == 3) throw new IOException($"分段 {clip.index} 下载失败，请检查网络或关闭多线程重试", ex);
             }
             }
@@ -235,7 +235,7 @@ internal static class BBDownDownloadUtil
         return clips;
     }
 
-    private static async Task<long> GetFileSizeAsync(string url)
+    private static async Task<long> GetFileSizeAsync(string url, CancellationToken token = default)
     {
         using var httpRequestMessage = new HttpRequestMessage();
         if (!url.Contains("platform=android_tv_yst") && !url.Contains("platform=android"))
@@ -243,7 +243,8 @@ internal static class BBDownDownloadUtil
         httpRequestMessage.Headers.TryAddWithoutValidation("User-Agent", "Mozilla/5.0");
         httpRequestMessage.Headers.TryAddWithoutValidation("Cookie", Core.Config.COOKIE);
         httpRequestMessage.RequestUri = new(url);
-        using var response = (await AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead)).EnsureSuccessStatusCode();
+        using var response = (await AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, token))
+            .EnsureSuccessStatusCode();
         long totalSizeBytes = response.Content.Headers.ContentLength ?? 0;
 
         return totalSizeBytes;
