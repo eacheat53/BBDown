@@ -106,7 +106,7 @@ static partial class BBDownMuxer
         }
 
         //----分析完毕
-        var arguments = (Config.DEBUG_LOG ? " -v " : "") + inputArg + (metaArg.ToString() == "" ? "" : " -itags tool=" + metaArg) + $" -new -- \"{outPath}\"";
+        var arguments = (Config.Current.DebugLog ? " -v " : "") + inputArg + (metaArg.ToString() == "" ? "" : " -itags tool=" + metaArg) + $" -new -- \"{outPath}\"";
         LogDebug("mp4box命令: {0}", arguments);
         return RunExe(MP4BOX, arguments);
     }
@@ -195,7 +195,7 @@ static partial class BBDownMuxer
 
         //----分析完毕
         StringBuilder argsBuilder = new StringBuilder();
-        argsBuilder.Append($"-loglevel {(Config.DEBUG_LOG ? "verbose" : "warning")} -y ");
+        argsBuilder.Append($"-loglevel {(Config.Current.DebugLog ? "verbose" : "warning")} -y ");
         argsBuilder.Append(inputArg);
         argsBuilder.Append(metaArg);
         if (!simplyMux) {

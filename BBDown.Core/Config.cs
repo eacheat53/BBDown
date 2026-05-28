@@ -1,29 +1,22 @@
-﻿namespace BBDown.Core;
+namespace BBDown.Core;
 
 public static class Config
 {
-    //For WEB
-    public static string COOKIE { get; set; } = "";
-    //For APP/TV
-    public static string TOKEN { get; set; } = "";
-    //日志级别
-    public static bool DEBUG_LOG { get; set; } = false;
-    //BiliPlus Host
-    public static string HOST { get; set; } = "api.bilibili.com";
-    //BiliPlus EP Host
-    public static string EPHOST { get; set; } = "api.bilibili.com";
-    //Bili Tv Api Host
-    public static string TVHOST { get; set; } = "api.snm0516.aisee.tv";
-    //BiliPlus Area
-    public static string AREA { get; set; } = "";
+    private static AppSettings _settings = new();
 
-    public static string WBI { get; set; } = "";
-    public static bool SKIP_SSL_CHECK { get; set; } = false;
+    public static AppSettings Current => _settings;
 
-    public static readonly Dictionary<string, string> qualitys = new() {
-        {"127","8K 超高清" }, {"126","杜比视界" }, {"125","HDR 真彩" }, {"120","4K 超清" }, {"116","1080P 高帧率" },
-        {"112","1080P 高码率" }, {"100","智能修复" }, {"80","1080P 高清" }, {"74","720P 高帧率" },
-        {"64","720P 高清" }, {"48","720P 高清" }, {"32","480P 清晰" }, {"16","360P 流畅" },
-        {"5","144P 流畅" }, {"6","240P 流畅" }
-    };
+    public static void Apply(AppSettings settings) => _settings = settings;
+
+    public static string COOKIE { get => _settings.Cookie; set => _settings = _settings with { Cookie = value }; }
+    public static string TOKEN { get => _settings.Token; set => _settings = _settings with { Token = value }; }
+    public static bool DEBUG_LOG { get => _settings.DebugLog; set => _settings = _settings with { DebugLog = value }; }
+    public static string HOST { get => _settings.Host; set => _settings = _settings with { Host = value }; }
+    public static string EPHOST { get => _settings.EpHost; set => _settings = _settings with { EpHost = value }; }
+    public static string TVHOST { get => _settings.TvHost; set => _settings = _settings with { TvHost = value }; }
+    public static string AREA { get => _settings.Area; set => _settings = _settings with { Area = value }; }
+    public static string WBI { get => _settings.Wbi; set => _settings = _settings with { Wbi = value }; }
+    public static bool SKIP_SSL_CHECK { get => _settings.SkipSslCheck; set => _settings = _settings with { SkipSslCheck = value }; }
+
+    public static readonly Dictionary<string, string> qualitys = AppSettings.QualityMap;
 }

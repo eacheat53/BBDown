@@ -288,7 +288,7 @@ public static partial class BBDownUtil
 
     private static async Task<string> GetEpIdByBangumiSSIdAsync(string ssId)
     {
-        string api = $"https://{Core.Config.EPHOST}/pgc/view/web/season?season_id={ssId}";
+        string api = $"https://{Core.Config.Current.EpHost}/pgc/view/web/season?season_id={ssId}";
         string json = await GetWebSourceAsync(api);
         using var jDoc = JsonDocument.Parse(json);
         var episodes = jDoc.RootElement.GetProperty("result").GetProperty("episodes").EnumerateArray();

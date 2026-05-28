@@ -78,7 +78,7 @@ partial class Program
 
         if (mergedArgs.Contains("--debug"))
         {
-            Config.DEBUG_LOG = true;
+            Config.Apply(Config.Current with { DebugLog = true });
         }
 
         var services = new ServiceCollection();
@@ -92,7 +92,7 @@ partial class Program
             {
                 Console.BackgroundColor = ConsoleColor.Red;
                 Console.ForegroundColor = ConsoleColor.White;
-                var msg = Config.DEBUG_LOG ? ex.ToString() : ex.Message;
+                var msg = Config.Current.DebugLog ? ex.ToString() : ex.Message;
                 Console.Error.WriteLine(msg);
                 Console.Error.WriteLine("请尝试升级到最新版本后重试!");
                 Console.ResetColor();

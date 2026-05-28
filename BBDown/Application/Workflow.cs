@@ -45,17 +45,19 @@ internal partial class Program
         string lang = myOption.Language;
         string aidOri = ""; //原始aid
         int delay = myOption.DelayPerPage;
-        Config.DEBUG_LOG = myOption.Debug;
-        Config.SKIP_SSL_CHECK = myOption.Insecure;
-        Config.HOST = myOption.Host;
-        Config.EPHOST = myOption.EpHost;
-        Config.TVHOST = myOption.TvHost;
-        Config.AREA = myOption.Area;
-        Config.COOKIE = myOption.Cookie;
-        Config.TOKEN = myOption.AccessToken.Replace("access_token=", "");
+        Config.Apply(new AppSettings(
+            Cookie: myOption.Cookie,
+            Token: myOption.AccessToken.Replace("access_token=", ""),
+            DebugLog: myOption.Debug,
+            Host: myOption.Host,
+            EpHost: myOption.EpHost,
+            TvHost: myOption.TvHost,
+            Area: myOption.Area,
+            SkipSslCheck: myOption.Insecure
+        ));
 
         LogDebug("AppDirectory: {0}", APP_DIR);
-        if (Config.DEBUG_LOG)
+        if (Config.Current.DebugLog)
         {
             var savedCookie = myOption.Cookie;
             var savedToken = myOption.AccessToken;
@@ -74,10 +76,10 @@ internal partial class Program
         LoadCredentials(myOption);
 
         // 检测是否登录了账号
-        if (myOption is { UseIntlApi: false, UseTvApi: false } && Config.AREA == "")
+        if (myOption is { UseIntlApi: false, UseTvApi: false } && Config.Current.Area == "")
         {
             Log("检测账号登录...");
-            if (!await CheckLogin(Config.COOKIE))
+            if (!await CheckLogin(Config.Current.Cookie))
             {
                 LogWarn("========================================");
                 LogWarn("  你尚未登录B站账号！");

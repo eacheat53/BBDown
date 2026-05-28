@@ -13,7 +13,7 @@ public static partial class Parser
 {
     public static string WbiSign(string api)
     {
-        return $"{api}&w_rid=" + Convert.ToHexStringLower(MD5.HashData(Encoding.UTF8.GetBytes(api + Config.WBI)));
+        return $"{api}&w_rid=" + Convert.ToHexStringLower(MD5.HashData(Encoding.UTF8.GetBytes(api + Config.Current.Wbi)));
     }
 
     private static async Task<string> GetPlayJsonAsync(string encoding, string aidOri, string aid, string cid, string epId, bool tvApi, bool intl, bool appApi, bool wantDrm, string qn = "0")
@@ -27,17 +27,17 @@ public static partial class Parser
         bool bangumi = cheese || aidOri.StartsWith("ep:");
         LogDebug("bangumi={0},cheese={1}", bangumi, cheese);
 
-        if (appApi) return await AppHelper.DoReqAsync(aid, cid, epId, qn, bangumi, encoding, Config.TOKEN);
+        if (appApi) return await AppHelper.DoReqAsync(aid, cid, epId, qn, bangumi, encoding, Config.Current.Token);
 
-        string prefix = tvApi ? bangumi ? $"{Config.TVHOST}/pgc/player/api/playurltv" : $"{Config.TVHOST}/x/tv/playurl"
-            : bangumi ? $"{Config.HOST}/pgc/player/web/v2/playurl" : "api.bilibili.com/x/player/wbi/playurl";
+        string prefix = tvApi ? bangumi ? $"{Config.Current.TvHost}/pgc/player/api/playurltv" : $"{Config.Current.TvHost}/x/tv/playurl"
+            : bangumi ? $"{Config.Current.Host}/pgc/player/web/v2/playurl" : "api.bilibili.com/x/player/wbi/playurl";
         prefix = $"https://{prefix}?";
 
         string api;
         if (tvApi)
         {
             StringBuilder apiBuilder = new();
-            if (Config.TOKEN != "") apiBuilder.Append($"access_key={Config.TOKEN}&");
+            if (Config.Current.Token != "") apiBuilder.Append($"access_key={Config.Current.Token}&");
             apiBuilder.Append($"appkey=4409e2ce8ffd12b8&build=106500&cid={cid}&device=android");
             if (bangumi) apiBuilder.Append($"&ep_id={epId}&expire=0");
             apiBuilder.Append($"&fnval=4048&fnver=0&fourk=1&mid=0&mobi_app=android_tv_yst");
@@ -49,10 +49,10 @@ public static partial class Parser
             // 尝试提高可读性
             StringBuilder apiBuilder = new();
             apiBuilder.Append($"support_multi_audio=true&from_client=BROWSER&avid={aid}&cid={cid}&fnval=4048&fnver=0&fourk=1");
-            if (Config.AREA != "") apiBuilder.Append($"&access_key={Config.TOKEN}&area={Config.AREA}");
+            if (Config.Current.Area != "") apiBuilder.Append($"&access_key={Config.Current.Token}&area={Config.Current.Area}");
             apiBuilder.Append($"&otype=json&qn={qn}");
             if (bangumi) apiBuilder.Append($"&module=bangumi&ep_id={epId}&session=");
-            if (Config.COOKIE == "" && !wantDrm) apiBuilder.Append("&try_look=1");
+            if (Config.Current.Cookie == "" && !wantDrm) apiBuilder.Append("&try_look=1");
             if (wantDrm) apiBuilder.Append("&drm_tech_type=2");
             apiBuilder.Append($"&wts={GetTimeStamp(true)}");
             api = prefix + (bangumi ? apiBuilder.ToString() : WbiSign(apiBuilder.ToString()));
@@ -76,13 +76,13 @@ public static partial class Parser
 
     private static async Task<string> GetPlayJsonAsync(string aid, string cid, string epId, string qn, string code = "0")
     {
-        bool isBiliPlus = Config.HOST != "api.bilibili.com";
-        string api = $"https://{(isBiliPlus ? Config.HOST : "api.biliintl.com")}/intl/gateway/v2/ogv/playurl?";
+        bool isBiliPlus = Config.Current.Host != "api.bilibili.com";
+        string api = $"https://{(isBiliPlus ? Config.Current.Host : "api.biliintl.com")}/intl/gateway/v2/ogv/playurl?";
 
         StringBuilder paramBuilder = new();
-        if (Config.TOKEN != "") paramBuilder.Append($"access_key={Config.TOKEN}&");
+        if (Config.Current.Token != "") paramBuilder.Append($"access_key={Config.Current.Token}&");
         paramBuilder.Append($"aid={aid}");
-        if (isBiliPlus) paramBuilder.Append($"&appkey=7d089525d3611b1c&area={(Config.AREA == "" ? "th" : Config.AREA)}");
+        if (isBiliPlus) paramBuilder.Append($"&appkey=7d089525d3611b1c&area={(Config.Current.Area == "" ? "th" : Config.Current.Area)}");
         paramBuilder.Append($"&cid={cid}&ep_id={epId}&platform=android&prefer_code_type={code}&qn={qn}");
         if (isBiliPlus) paramBuilder.Append($"&ts={GetTimeStamp(true)}");
 
@@ -129,7 +129,7 @@ public static partial class Parser
                             {
                                 dur = pDur,
                                 id = videoId,
-                                dfn = Config.qualitys.GetValueOrDefault(videoId, $"未知({videoId})"),
+                                dfn = AppSettings.QualityMap.GetValueOrDefault(videoId, $"未知({videoId})"),
                                 bandwidth = dashVideo.GetProperty("bandwidth").GetInt64() / 1000,
                                 baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
                                 codecs = GetVideoCodec(dashVideo.GetProperty("codecid").ToString()),
@@ -275,7 +275,7 @@ public static partial class Parser
                     {
                         dur = pDur,
                         id = videoId,
-                        dfn = Config.qualitys.GetValueOrDefault(videoId, $"未知({videoId})"),
+                        dfn = AppSettings.QualityMap.GetValueOrDefault(videoId, $"未知({videoId})"),
                         bandwidth = node.GetProperty("bandwidth").GetInt64() / 1000,
                         baseUrl = urlList.FirstOrDefault(i => !BaseUrlRegex().IsMatch(i), urlList.First()),
                         codecs = GetVideoCodec(node.GetProperty("codecid").ToString()),
@@ -431,7 +431,7 @@ public static partial class Parser
             Video v = new()
             {
                 id = quality,
-                dfn = Config.qualitys.GetValueOrDefault(quality, $"未知({quality})"),
+                dfn = AppSettings.QualityMap.GetValueOrDefault(quality, $"未知({quality})"),
                 baseUrl = url,
                 codecs = GetVideoCodec(videoCodecid),
                 dur = (int)length / 1000,
@@ -489,7 +489,7 @@ public static partial class Parser
 
     private static string GetMaxQn()
     {
-        var max = Config.qualitys.Keys
+        var max = AppSettings.QualityMap.Keys
             .Select(k => int.TryParse(k, out var v) ? v : 0)
             .Max();
         return max.ToString();

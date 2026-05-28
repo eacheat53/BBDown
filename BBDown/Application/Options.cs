@@ -240,25 +240,31 @@ internal partial class Program
     /// <param name="myOption"></param>
     private static void LoadCredentials(MyOption myOption)
     {
-        if (string.IsNullOrEmpty(Config.COOKIE) && File.Exists(Path.Combine(APP_DIR, "BBDown.data")))
+        string cookie = Config.Current.Cookie;
+        string token = Config.Current.Token;
+
+        if (string.IsNullOrEmpty(cookie) && File.Exists(Path.Combine(APP_DIR, "BBDown.data")))
         {
             Log("加载本地cookie...");
             LogDebug("文件路径：{0}", Path.Combine(APP_DIR, "BBDown.data"));
-            Config.COOKIE = File.ReadAllText(Path.Combine(APP_DIR, "BBDown.data"));
+            cookie = File.ReadAllText(Path.Combine(APP_DIR, "BBDown.data"));
         }
-        if (string.IsNullOrEmpty(Config.TOKEN) && File.Exists(Path.Combine(APP_DIR, "BBDownTV.data")) && myOption.UseTvApi)
+        if (string.IsNullOrEmpty(token) && File.Exists(Path.Combine(APP_DIR, "BBDownTV.data")) && myOption.UseTvApi)
         {
             Log("加载本地token...");
             LogDebug("文件路径：{0}", Path.Combine(APP_DIR, "BBDownTV.data"));
-            Config.TOKEN = File.ReadAllText(Path.Combine(APP_DIR, "BBDownTV.data"));
-            Config.TOKEN = Config.TOKEN.Replace("access_token=", "");
+            token = File.ReadAllText(Path.Combine(APP_DIR, "BBDownTV.data")).Replace("access_token=", "");
         }
-        if (string.IsNullOrEmpty(Config.TOKEN) && File.Exists(Path.Combine(APP_DIR, "BBDownApp.data")) && myOption.UseAppApi)
+        if (string.IsNullOrEmpty(token) && File.Exists(Path.Combine(APP_DIR, "BBDownApp.data")) && myOption.UseAppApi)
         {
             Log("加载本地token...");
             LogDebug("文件路径：{0}", Path.Combine(APP_DIR, "BBDownApp.data"));
-            Config.TOKEN = File.ReadAllText(Path.Combine(APP_DIR, "BBDownApp.data"));
-            Config.TOKEN = Config.TOKEN.Replace("access_token=", "");
+            token = File.ReadAllText(Path.Combine(APP_DIR, "BBDownApp.data")).Replace("access_token=", "");
+        }
+
+        if (cookie != Config.Current.Cookie || token != Config.Current.Token)
+        {
+            Config.Apply(Config.Current with { Cookie = cookie, Token = token });
         }
     }
 

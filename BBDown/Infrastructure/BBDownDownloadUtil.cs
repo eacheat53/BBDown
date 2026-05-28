@@ -40,7 +40,7 @@ internal static class BBDownDownloadUtil
         if (!url.Contains("platform=android_tv_yst") && !url.Contains("platform=android"))
             httpRequestMessage.Headers.TryAddWithoutValidation("Referer", "https://www.bilibili.com");
         httpRequestMessage.Headers.TryAddWithoutValidation("User-Agent", "Mozilla/5.0");
-        httpRequestMessage.Headers.TryAddWithoutValidation("Cookie", Core.Config.COOKIE);
+        httpRequestMessage.Headers.TryAddWithoutValidation("Cookie", Core.Config.Current.Cookie);
         httpRequestMessage.Headers.Range = new(downloadedBytes, toPosition);
         httpRequestMessage.Headers.IfRange = lastTime != null ? new(lastTime.Value) : null;
         httpRequestMessage.RequestUri = new(url);
@@ -241,7 +241,7 @@ internal static class BBDownDownloadUtil
         if (!url.Contains("platform=android_tv_yst") && !url.Contains("platform=android"))
             httpRequestMessage.Headers.TryAddWithoutValidation("Referer", "https://www.bilibili.com");
         httpRequestMessage.Headers.TryAddWithoutValidation("User-Agent", "Mozilla/5.0");
-        httpRequestMessage.Headers.TryAddWithoutValidation("Cookie", Core.Config.COOKIE);
+        httpRequestMessage.Headers.TryAddWithoutValidation("Cookie", Core.Config.Current.Cookie);
         httpRequestMessage.RequestUri = new(url);
         using var response = (await AppHttpClient.SendAsync(httpRequestMessage, HttpCompletionOption.ResponseHeadersRead, token))
             .EnsureSuccessStatusCode();
