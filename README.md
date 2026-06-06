@@ -11,19 +11,6 @@
 * 普通视频：[ffmpeg](https://www.gyan.dev/ffmpeg/builds/) ，或 [mp4box](https://gpac.wp.imt.fr/downloads/)
 * 杜比视界：ffmpeg5.0以上或新版mp4box.
 
-# 快速开始
-本软件已经以 [Dotnet Tool](https://www.nuget.org/packages/BBDown/) 形式发布  
-
-如果你本地有dotnet环境，使用如下命令即可安装使用
-```
-dotnet tool install --global BBDown
-```
-
-如果需要更新bbdown，使用如下命令
-```
-dotnet tool update --global BBDown
-```
-
 # 下载
 Release版本：https://github.com/AliverAnme/BBDown/releases
 
@@ -108,9 +95,9 @@ Commands:
 - [x] Cookie 过期检测与明确提示（区分 "未登录" vs "Cookie 已过期"）
 - [x] JSON 解析统一错误包装（`JsonElementExtensions` + 全项目 200+ 处调用迁移至 safe accessor）
 
-## 待完成 🔴
+## 待完成
 
-_当前所有高优先级 TODO 已完成。后续可继续优化单元测试覆盖率、增加更多 CLI/HTTP 自定义参数等。_
+。。。
 
 # 使用教程
 
