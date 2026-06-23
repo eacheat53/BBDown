@@ -1,4 +1,4 @@
-﻿using BBDown.Core.Entity;
+using BBDown.Core.Entity;
 using BBDown.Core.Util;
 using System.Text.Json;
 
@@ -20,6 +20,16 @@ public class SpaceVideoFetcher : IFetcher
         api = $"https://api.bilibili.com/x/space/wbi/arc/search?{api}";
         string json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
+        int code = infoJson.RootElement.GetInt32Safe("code");
+        if (code != 0)
+        {
+            string msg = infoJson.RootElement.GetStringSafe("message");
+            if (code == -352 || json.Contains("v_voucher"))
+            {
+                throw new InvalidOperationException($"获取空间视频失败 (code={code}): {msg}。接口已被风控拦截，请尝试使用有效的 Cookie 登录后重试。");
+            }
+            throw new InvalidOperationException($"获取空间视频失败 (code={code}): {msg}");
+        }
         var pages = infoJson.RootElement.GetPropertySafe("data").GetPropertySafe("list").EnumerateArraySafe("vlist");
         foreach (var page in pages)
         {
@@ -49,6 +59,16 @@ pause");
         api = $"https://api.bilibili.com/x/space/wbi/arc/search?{api}";
         string json = await HTTPUtil.GetWebSourceAsync(api);
         using var infoJson = JsonDocument.Parse(json);
+        int code = infoJson.RootElement.GetInt32Safe("code");
+        if (code != 0)
+        {
+            string msg = infoJson.RootElement.GetStringSafe("message");
+            if (code == -352 || json.Contains("v_voucher"))
+            {
+                throw new InvalidOperationException($"获取空间视频失败 (code={code}): {msg}。接口已被风控拦截，请尝试使用有效的 Cookie 登录后重试。");
+            }
+            throw new InvalidOperationException($"获取空间视频失败 (code={code}): {msg}");
+        }
         var pages = infoJson.RootElement.GetPropertySafe("data").GetPropertySafe("list").EnumerateArraySafe("vlist");
         foreach (var page in pages)
         {

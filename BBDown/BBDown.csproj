@@ -27,6 +27,8 @@
 
   <ItemGroup>
     <TrimmerRootAssembly Include="BBDown" />
+    <TrimmerRootAssembly Include="Spectre.Console.Cli" />
+    <TrimmerRootAssembly Include="Spectre.Console" />
   </ItemGroup>
 
   <ItemGroup>
