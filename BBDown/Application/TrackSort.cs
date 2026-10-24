@@ -21,7 +21,11 @@ internal partial class Program
         // 编码优先：先按编码排序，再按清晰度排序；清晰度优先时使用 --dfn-priority 即可
         return videoTracks
             .OrderBy(v => encodingPriority.GetValueOrDefault(v.codecs, (byte)100))
-            .ThenBy(v => dfnPriority.GetValueOrDefault(v.dfn, 100))
+            .ThenBy(v =>
+            {
+                var match = dfnPriority.FirstOrDefault(p => v.dfn.ToUpperInvariant().Contains(p.Key));
+                return match.Key != null ? match.Value : 100;
+            })
             .ThenByDescending(v => int.TryParse(v.id, NumberStyles.Integer, CultureInfo.InvariantCulture, out var quality) ? quality : 0)
             .ThenBy(v => videoAscending ? v.bandwidth : -v.bandwidth)
             .ToList();
@@ -34,5 +38,4 @@ internal partial class Program
             .ThenBy(a => audioAscending ? a.bandwidth : -a.bandwidth)
             .ToList();
     }
-
 }

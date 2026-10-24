@@ -57,6 +57,8 @@ public sealed class WidevineCdm : IDisposable
 
     private async Task<(string kid, string key)[]?> GetKeysInternalAsync(string psshB64, CancellationToken token = default)
     {
+        token.ThrowIfCancellationRequested();
+
         // BiliBili 不需要 service certificate / privacy mode
         var (psshPayload, keyIds) = ParsePsshBox(psshB64);
         if (keyIds.Count == 0)
